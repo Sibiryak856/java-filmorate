@@ -13,9 +13,9 @@ import java.util.*;
 @Slf4j
 @RequestMapping("/films")
 public class FilmController implements Controller<Film> {
-    private final static int DESCRIPTION_MAX_SIZE = 200;
-    private final static LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private final static int MIN_FILM_DURATION = 0;
+    private static final int DESCRIPTION_MAX_SIZE = 200;
+    private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private static final int MIN_FILM_DURATION = 0;
 
     private int filmId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
@@ -82,6 +82,6 @@ public class FilmController implements Controller<Film> {
             String errorMessage = "Длительность фильма меньше допустимой";
             log.error(errorMessage);
             throw new FilmValidException(errorMessage);
-        } else return;
+        }
     }
 }

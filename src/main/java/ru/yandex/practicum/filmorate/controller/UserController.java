@@ -78,6 +78,6 @@ public class UserController implements Controller<User> {
             String errorMessage = "Дата рождения не может быть позже текущей даты";
             log.error(errorMessage);
             throw new UserValidException(errorMessage);
-        } else return;
+        }
     }
 }
