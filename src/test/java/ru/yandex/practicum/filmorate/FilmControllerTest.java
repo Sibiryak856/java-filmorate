@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Assertions;
-import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.controller.Controller;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidException;
@@ -14,7 +12,7 @@ import java.time.LocalDate;
 
 public class FilmControllerTest {
 
-    private Controller filmController;
+    private Controller<Film> filmController;
 
     @BeforeEach
     public void setUp() {
