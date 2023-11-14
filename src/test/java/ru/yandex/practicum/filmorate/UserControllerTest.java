@@ -3,9 +3,8 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.Controller;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exceptions.UserValidException;
+import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -13,7 +12,7 @@ import java.time.LocalDate;
 
 public class UserControllerTest {
 
-    private Controller<User> userController;
+    private UserController userController;
 
     @BeforeEach
     public void setUp() {
@@ -25,8 +24,8 @@ public class UserControllerTest {
         User user = new User(1, "user", "login", "name", LocalDate.of(2000,10,10));
         User user1 = new User(1, "", "login", "name", LocalDate.of(2000,10,10));
 
-        Assertions.assertThrows(UserValidException.class, () -> userController.create(user));
-        Assertions.assertThrows(UserValidException.class, () -> userController.create(user1));
+        Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidateException.class, () -> userController.create(user1));
     }
 
     @Test
@@ -34,8 +33,8 @@ public class UserControllerTest {
         User user = new User(1, "u@y.ru", "", "name", LocalDate.of(2000,10,10));
         User user1 = new User(1, "u@y.ru", "log in", "name", LocalDate.of(2000,10,10));
 
-        Assertions.assertThrows(UserValidException.class, () -> userController.create(user));
-        Assertions.assertThrows(UserValidException.class, () -> userController.create(user1));
+        Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidateException.class, () -> userController.create(user1));
     }
 
     @Test
@@ -49,6 +48,6 @@ public class UserControllerTest {
     public void testUserBirthday() {
         User user = new User(1, "u@y.ru", "login", "name", LocalDate.now().plusDays(1));
 
-        Assertions.assertThrows(UserValidException.class, () -> userController.create(user));
+        Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
     }
 }
