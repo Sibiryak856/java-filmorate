@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
@@ -16,30 +17,31 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private UserStorage userStorage;
+    private UserService userService;
 
     @Autowired
-    public UserController(@Qualifier("memoryUserStorage") UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
+
 
     @GetMapping
     public List<User> getAll() {
-        return userStorage.getAll();
+        return userService.userStorage.getAll();
     }
 
     @GetMapping(value = "/{id}")
     public User getUser(@PathVariable Integer id) {
-        return userStorage.getUser(id);
+        return userService.userStorage.getUser(id);
     }
 
     @PostMapping
     public User create(@RequestBody User user) {
-        return userStorage.create(user);
+        return userService.userStorage.create(user);
     }
 
     @PutMapping
     public User update(@RequestBody User user) {
-        return userStorage.update(user);
+        return userService.userStorage.update(user);
     }
 }

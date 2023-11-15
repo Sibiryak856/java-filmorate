@@ -8,10 +8,7 @@ import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component("memoryUserStorage")
 @Slf4j
@@ -20,14 +17,12 @@ public class InMemoryUserStorage implements UserStorage {
     private ValidateService validateService;
 
     private int userId = 0;
-
     private final Map<Integer, User> users = new HashMap<>();
 
     @Autowired
     public InMemoryUserStorage(ValidateService validateService) {
         this.validateService = validateService;
     }
-
 
     @Override
     public List<User> getAll() {
@@ -75,4 +70,10 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Пользователь id {} обновлен: {}", user.getId(), user);
         return user;
     }
+
+    /*List<Integer> getFriends(Integer id) {
+        return new ArrayList<>(getUser(id).getFriends());
+    }*/
+
+
 }
