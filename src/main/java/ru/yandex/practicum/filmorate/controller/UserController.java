@@ -28,21 +28,22 @@ public class UserController {
 
     @GetMapping(value = "/{id}")
     public User get(@PathVariable Integer id) {
-        if (users.containsKey(id)) {
-            log.info("Get /user {}", users.get(id));
-            return users.get(id);
-        } else {
+        if (!users.containsKey(id)) {
             String error = "Пользователя с таким id не существует";
             log.error(error);
             throw new ValidateException(error);
         }
+        log.info("Get /user {}", users.get(id));
+        return users.get(id);
     }
 
     @PostMapping
     public User create(@RequestBody User user) {
         validateService.userValidate(user);
         user.setId(++userId);
-        if (user.getName() == null || user.getName().isBlank()) user.setName(user.getLogin());
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         log.info("Post /users {}", user);
         users.put(user.getId(), user);
         return user;
@@ -50,21 +51,20 @@ public class UserController {
 
     @PutMapping
     public User update(@RequestBody User user) {
-        if (user.getId() != null) {
-            validateService.userValidate(user);
-            if (users.containsKey(user.getId())) {
-                users.put(user.getId(), user);
-                log.info("Put /users {} updated: {}", user.getId(), user);
-                return user;
-            } else {
-                String error = "Пользователя с таким id не существует";
-                log.error(error);
-                throw new ValidateException(error);
-            }
-        } else {
+        if (user.getId() == null) {
             String error = "Не указан id пользовавтеля";
             log.error(error);
             throw new ValidateException(error);
         }
+
+        validateService.userValidate(user);
+        if (!users.containsKey(user.getId())) {
+            String error = "Пользователя с таким id не существует";
+            log.error(error);
+            throw new ValidateException(error);
+        }
+        users.put(user.getId(), user);
+        log.info("Put /users {} updated: {}", user.getId(), user);
+        return user;
     }
 }

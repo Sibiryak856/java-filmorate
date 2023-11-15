@@ -27,13 +27,12 @@ public class FilmController {
     @GetMapping(value = "/{id}")
     public Film get(@PathVariable Integer id) {
         log.info("Get /films {}", films.get(id));
-        if (films.containsKey(id)) {
-            return films.get(id);
-        } else {
+        if (!films.containsKey(id)) {
             String error = "Фильма с таким id не существует";
             log.error(error);
             throw new ValidateException(error);
         }
+        return films.get(id);
     }
 
     @PostMapping
@@ -47,21 +46,19 @@ public class FilmController {
 
     @PutMapping
     public Film update(@RequestBody Film film) {
-        if (film.getId() != null) {
-            validateService.filmValidation(film);
-            if (films.containsKey(film.getId())) {
-                log.info("PUT /films {} updated: {}", film.getId(), film);
-                films.put(film.getId(), film);
-                return film;
-            } else {
-                String error = "Фильма с таким id не существует";
-                log.error(error);
-                throw new ValidateException(error);
-            }
-        } else {
+        if (film.getId() == null) {
             String error = "Не указан id фильма";
             log.error(error);
             throw new ValidateException(error);
         }
+        validateService.filmValidation(film);
+        if (!films.containsKey(film.getId())) {
+            String error = "Фильма с таким id не существует";
+            log.error(error);
+            throw new ValidateException(error);
+        }
+        log.info("PUT /films {} updated: {}", film.getId(), film);
+        films.put(film.getId(), film);
+        return film;
     }
 }
