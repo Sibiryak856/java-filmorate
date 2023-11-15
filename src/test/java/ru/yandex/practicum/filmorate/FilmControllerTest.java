@@ -6,16 +6,22 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 
 public class FilmControllerTest {
 
     private FilmController filmController;
+    private InMemoryFilmStorage filmStorage;
+    private ValidateService validateService;
 
     @BeforeEach
     public void setUp() {
-        filmController = new FilmController();
+        validateService = new ValidateService();
+        filmStorage = new InMemoryFilmStorage(validateService);
+        filmController = new FilmController(filmStorage);
     }
 
     @Test
