@@ -13,7 +13,7 @@ import java.util.*;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
 
-    private ValidateService validateService;
+    private final ValidateService validateService;
 
     private int userId = 0;
     private final Map<Integer, User> users = new HashMap<>();
@@ -32,9 +32,9 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User getUser(Integer id) {
         if (!users.containsKey(id)) {
-            String error = "Пользователя с таким id не существует";
+            String error = String.format("Пользователя с таким id=%d не существует", id);
             log.error(error);
-            throw new ValidateException(error);
+            throw new NoSuchElementException(error);
         }
         log.info("Обработан запрос получения фильма id {}", users.get(id));
         return users.get(id);
@@ -61,9 +61,9 @@ public class InMemoryUserStorage implements UserStorage {
         }
         validateService.userValidate(user);
         if (!users.containsKey(user.getId())) {
-            String error = "Пользователя с таким id не существует";
+            String error = String.format("Пользователя с таким id=%d не существует", user.getId());
             log.error(error);
-            throw new ValidateException(error);
+            throw new NoSuchElementException(error);
         }
         users.put(user.getId(), user);
         log.info("Пользователь id {} обновлен: {}", user.getId(), user);

@@ -1,11 +1,10 @@
-/*
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.service.ValidateService;
@@ -24,9 +23,9 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         validateService = new ValidateService();
-        userService = new UserService();
-        userStorage = new InMemoryUserStorage(validateService, userService);
-        userController = new UserController(userStorage);
+        userStorage = new InMemoryUserStorage(validateService);
+        userService = new UserService(userStorage);
+        userController = new UserController(userService);
     }
 
     @Test
@@ -61,4 +60,3 @@ public class UserControllerTest {
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
     }
 }
-*/

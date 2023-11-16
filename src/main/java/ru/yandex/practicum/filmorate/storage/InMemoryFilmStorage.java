@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private ValidateService validateService;
+    private final ValidateService validateService;
     private int filmId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
 
@@ -35,7 +35,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(id)) {
             String error = "Фильма с таким id не существует";
             log.error(error);
-            throw new ValidateException(error);
+            throw new NoSuchElementException(error);
         }
         log.info("Обработан запрос полчения фильма id {}", films.get(id));
         return films.get(id);
@@ -61,30 +61,10 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(film.getId())) {
             String error = "Фильма с таким id не существует";
             log.error(error);
-            throw new ValidateException(error);
+            throw new NoSuchElementException(error);
         }
         log.info("Фильм id {} обновлен: {}", film.getId(), film);
         films.put(film.getId(), film);
         return film;
-    }
-
-    @Override
-    public List<Film> getTopTenFilmsByLikes() {
-        List<Film> topFilmsById = getAll().stream()
-                .sorted(new TopFilmComparator())
-                .collect(Collectors.toList());
-        return topFilmsById.subList(0, 9);
-    }
-
-    private class TopFilmComparator implements Comparator<Film> {
-        @Override
-        public int compare(Film f1, Film f2) {
-            if (f1.getLikes().size() > f2.getLikes().size()) {
-                return -1;
-            } else if (f1.getLikes().size() < f2.getLikes().size()) {
-                return 1;
-            }
-            return 0;
-        }
     }
 }

@@ -1,11 +1,10 @@
-/*
 package ru.yandex.practicum.filmorate;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ValidateService;
@@ -23,9 +22,9 @@ public class FilmControllerTest {
     @BeforeEach
     public void setUp() {
         validateService = new ValidateService();
-        filmService = new FilmService();
-        filmStorage = new InMemoryFilmStorage(validateService, filmService);
-        filmController = new FilmController(filmStorage);
+        filmStorage = new InMemoryFilmStorage(validateService);
+        filmService = new FilmService(filmStorage);
+        filmController = new FilmController(filmService);
     }
 
     @Test
@@ -60,4 +59,3 @@ public class FilmControllerTest {
         Assertions.assertThrows(ValidateException.class, () -> filmController.create(film));
     }
 }
-*/

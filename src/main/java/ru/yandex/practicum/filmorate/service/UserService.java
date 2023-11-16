@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.IncorrectParameterException;
+import org.springframework.web.bind.annotation.RequestMethod;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -11,10 +13,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ru.yandex.practicum.filmorate.Constants.FRIEDNS_LIST_ACTIONS;
-import static ru.yandex.practicum.filmorate.Constants.FRIEND_CANCELLATION;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Service
+@Slf4j
 public class UserService {
 
     public UserStorage userStorage;
@@ -24,70 +27,54 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-/*    public void addFriend(Integer initiatorUserId, Integer requestedUserId) { // with params
-        User initiator = userStorage.getUser(initiatorUserId);
-
-        User requestedUser = userStorage.getUser(requestedUserId);
-
-        Set<Integer> initiatorFriends = initiator.getFriends();
-        initiatorFriends.add(requestedUser.getId());
-        initiator.setFriends(initiatorFriends);
-
-        Set<Integer> requestedUserFriends = requestedUser.getFriends();
-        requestedUserFriends.add(initiator.getId());
-        requestedUser.setFriends(requestedUserFriends);
-    }
-
-    public void deleteFriend(Integer initiatorUserId, Integer requestedUserId) {
-        User initiator = userStorage.getUser(initiatorUserId);
-
-        User requestedUser = userStorage.getUser(requestedUserId);
-
-        Set<Integer> initiatorFriends = initiator.getFriends();
-        initiatorFriends.remove(requestedUser.getId());
-        initiator.setFriends(initiatorFriends);
-
-        Set<Integer> requestedUserFriends = requestedUser.getFriends();
-        requestedUserFriends.remove(initiator.getId());
-        requestedUser.setFriends(requestedUserFriends);
-
-    }*/
-
-    public List<User> getCommonFriends (Integer initiatorUserId, Integer requestedUserId) {
-        User initiator = userStorage.getUser(initiatorUserId);
+    public List<User> getCommonFriends (Integer userId, Integer friendId) {
+        User initiator = userStorage.getUser(userId);
         Set<Integer> initiatorFriends = initiator.getFriends();
 
-        User requestedUser = userStorage.getUser(requestedUserId);
+        User requestedUser = userStorage.getUser(friendId);
         Set<Integer> requestedUserFriends = requestedUser.getFriends();
 
         Set<Integer> commonFriendsId = initiatorFriends.stream()
                 .filter(requestedUserFriends::contains)
                 .collect(Collectors.toSet());
+        log.info("Обработан запрос вывода общих друзей ids {} и {}", userId, friendId);
         return commonFriendsId.stream()
                 .map(id -> userStorage.getAll().get(id))
                 .collect(Collectors.toList());
     }
 
-    public User updateFriend(Integer initiatorId, Integer requestedId, String action) {
-        User initiator = userStorage.getUser(initiatorId);
-        User requestedUser = userStorage.getUser(requestedId);
+    public List<User> getFriends (Integer userId) {
+        User initiator = userStorage.getUser(userId);
+        Set<Integer> friends = initiator.getFriends();
 
-        if (!FRIEDNS_LIST_ACTIONS.contains(action)) {
-            throw new IncorrectParameterException(action);
-        }
+        log.info("Обработан запрос вывода друзей пользователя {} ", userId);
+        return friends.stream()
+                .map(id -> userStorage.getAll().get(id))
+                .collect(Collectors.toList());
+    }
+
+    public void updateFriendship(Integer userId, Integer friendId, RequestMethod method) {
+        User initiator = userStorage.getUser(userId);
+        User requestedUser = userStorage.getUser(friendId);
+
         Set<Integer> initiatorFriends = initiator.getFriends();
         Set<Integer> requestedUserFriends = requestedUser.getFriends();
-        if(action.equals(FRIEND_CANCELLATION)) {
-            initiatorFriends.remove(requestedId);
-            requestedUserFriends.remove(initiatorId);
+        if(method.equals(DELETE)) {
+            initiatorFriends.remove(friendId);
+            requestedUserFriends.remove(userId);
             initiator.setFriends(initiatorFriends);
             requestedUser.setFriends(requestedUserFriends);
-            return initiator;
+            log.info("Пользователь id {} успешно удалил пользователя id {} из списка друзей", userId, friendId);
+        } else if (method.equals(PUT)) {
+            initiatorFriends.add(friendId);
+            requestedUserFriends.add(userId);
+            initiator.setFriends(initiatorFriends);
+            requestedUser.setFriends(requestedUserFriends);
+            log.info("Пользователь id {} успешно добавил пользователя id {} в список друзей", userId, friendId);
+        } else {
+            String msg = "Некорректный запрос действия " + method;
+            log.error(msg);
+            throw new ValidateException(msg);
         }
-        initiatorFriends.add(requestedId);
-        requestedUserFriends.add(initiatorId);
-        initiator.setFriends(initiatorFriends);
-        requestedUser.setFriends(requestedUserFriends);
-        return initiator;
     }
 }

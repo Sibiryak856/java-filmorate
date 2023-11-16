@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -13,7 +14,7 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
 
-    private FilmService filmService;
+    private final FilmService filmService;
 
     @Autowired
     public FilmController(FilmService filmService) {
@@ -25,14 +26,21 @@ public class FilmController {
         return filmService.filmStorage.getAll();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping("/{id}")
     public Film getFilm(@PathVariable Integer id) {
         return filmService.filmStorage.getFilm(id);
     }
 
-    @GetMapping("/topFilms")
-    public List<Film> getTopFilms() {
-        return filmService.getTopFilms();
+    @GetMapping("/popular")
+    public List<Film> getTopFilms(
+            @RequestParam(defaultValue = "10", required = false) Integer count
+    ) {
+        if (count <= 0) {
+            String error = String.format("Некорректный параметр count=%d", count);
+            log.error(error);
+            throw new ValidateException(error);
+        }
+        return filmService.getTopFilms(count);
     }
 
     @PostMapping
@@ -45,12 +53,19 @@ public class FilmController {
         return filmService.filmStorage.update(film);
     }
 
-    @PutMapping("/like")
-    public Film updateLike(
-            @RequestParam() Integer userId,
-            @RequestParam() Integer filmId,
-            @RequestParam() String action
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(
+            @PathVariable() Integer id,
+            @PathVariable() Integer userId
     ) {
-        return filmService.updateLike(userId, filmId, action);
+        filmService.updateLike(userId, id, RequestMethod.PUT);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(
+            @PathVariable() Integer id,
+            @PathVariable() Integer userId
+    ) {
+        filmService.updateLike(userId, id, RequestMethod.DELETE);
     }
 }

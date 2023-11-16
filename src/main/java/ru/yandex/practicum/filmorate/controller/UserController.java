@@ -13,7 +13,7 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
@@ -26,17 +26,22 @@ public class UserController {
         return userService.userStorage.getAll();
     }
 
-    @GetMapping(value = "/{id}")
+    @GetMapping("/{id}")
     public User getUser(@PathVariable Integer id) {
         return userService.userStorage.getUser(id);
     }
 
-    @GetMapping("/common")
+    @GetMapping("/{id}/friends")
+    public List<User> getUserFriends(@PathVariable Integer id) {
+        return userService.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}") // список общих друзей id и otherId
     public List<User> getCommonFriends(
-            @RequestParam() Integer initiatorId,
-            @RequestParam() Integer requestedId
+            @PathVariable Integer id,
+            @PathVariable Integer otherId
     ) {
-        return userService.getCommonFriends(initiatorId, requestedId);
+        return userService.getCommonFriends(id, otherId);
     }
 
     @PostMapping
@@ -49,12 +54,20 @@ public class UserController {
         return userService.userStorage.update(user);
     }
 
-    @PutMapping("/friend")
-    public User updateFriends(
-            @RequestParam() Integer initiatorId,
-            @RequestParam() Integer requestedId,
-            @RequestParam() String action
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(
+            @PathVariable Integer id,
+            @PathVariable Integer friendId
     ) {
-        return userService.updateFriend(initiatorId, requestedId, action);
+        userService.updateFriendship(id, friendId, RequestMethod.PUT);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(
+            @PathVariable Integer id,
+            @PathVariable Integer friendId
+    ) {
+        userService.updateFriendship(id, friendId, RequestMethod.DELETE);
     }
 }
