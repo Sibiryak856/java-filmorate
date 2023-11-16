@@ -27,7 +27,7 @@ public class UserService {
         this.userStorage = userStorage;
     }
 
-    public List<User> getCommonFriends (Integer userId, Integer friendId) {
+    public List<User> getCommonFriends(Integer userId, Integer friendId) {
         User initiator = userStorage.getUser(userId);
         Set<Integer> initiatorFriends = initiator.getFriends();
 
@@ -59,7 +59,7 @@ public class UserService {
 
         Set<Integer> initiatorFriends = initiator.getFriends();
         Set<Integer> requestedUserFriends = requestedUser.getFriends();
-        if(method.equals(DELETE)) {
+        if (method.equals(DELETE)) {
             initiatorFriends.remove(friendId);
             requestedUserFriends.remove(userId);
             log.info("Пользователь id {} успешно удалил пользователя id {} из списка друзей", userId, friendId);
