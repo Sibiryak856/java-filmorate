@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -33,6 +34,11 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getUserFriends(@PathVariable Integer id) {
+        if (id < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         return userService.getUserFriends(id);
     }
 
@@ -41,6 +47,11 @@ public class UserController {
             @PathVariable Integer id,
             @PathVariable Integer otherId
     ) {
+        if (id < 0 || otherId < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         return userService.getCommonFriends(id, otherId);
     }
 
@@ -60,6 +71,11 @@ public class UserController {
             @PathVariable Integer id,
             @PathVariable Integer friendId
     ) {
+        if (id < 0 || friendId < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         userService.updateFriendship(id, friendId, RequestMethod.PUT);
     }
 
@@ -68,6 +84,11 @@ public class UserController {
             @PathVariable Integer id,
             @PathVariable Integer friendId
     ) {
+        if (id < 0 || friendId < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         userService.updateFriendship(id, friendId, RequestMethod.DELETE);
     }
 }

@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
-import java.util.NoSuchElementException;
-
 @RestControllerAdvice
 public class ErrorHandler {
 
@@ -20,7 +18,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNoSuchElementException(final NoSuchElementException e) {
+    public ErrorResponse handleIncorrectIdException(final IncorrectIdException e) {
         return new ErrorResponse(e.getMessage());
     }
 

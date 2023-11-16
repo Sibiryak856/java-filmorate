@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.ValidateService;
@@ -32,15 +33,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film getFilm(Integer id) {
         if (!films.containsKey(id)) {
-            String error;
-            if (id < 0) {
-                error = String.format("Id фильма не может быть отрицательным числом: %d", id);
-                log.error(error);
-                throw new NoSuchElementException(error);
-            }
-            error = String.format("Фильма с таким id=%d не существует", id);
+            String error = String.format("Фильма с таким id=%d не существует", id);
             log.error(error);
-            throw new NoSuchElementException(error);
+            throw new IncorrectIdException(error);
         }
         log.info("Обработан запрос полчения фильма id {}", films.get(id));
         return films.get(id);
@@ -66,7 +61,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(film.getId())) {
             String error = "Фильма с таким id не существует";
             log.error(error);
-            throw new NoSuchElementException(error);
+            throw new IncorrectIdException(error);
         }
         log.info("Фильм id {} обновлен: {}", film.getId(), film);
         films.put(film.getId(), film);

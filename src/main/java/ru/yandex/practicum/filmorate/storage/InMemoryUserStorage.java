@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
@@ -32,15 +33,9 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User getUser(Integer id) {
         if (!users.containsKey(id)) {
-            String error;
-            if (id < 0) {
-                error = String.format("Id пользователя не может быть отрицательным числом: %d", id);
-                log.error(error);
-                throw new NoSuchElementException(error);
-            }
-            error = String.format("Пользователя с таким id=%d не существует", id);
+            String error = String.format("Пользователя с таким id=%d не существует", id);
             log.error(error);
-            throw new NoSuchElementException(error);
+            throw new IncorrectIdException(error);
         }
         log.info("Обработан запрос получения фильма id {}", users.get(id));
         return users.get(id);
@@ -69,7 +64,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (!users.containsKey(user.getId())) {
             String error = String.format("Пользователя с таким id=%d не существует", user.getId());
             log.error(error);
-            throw new NoSuchElementException(error);
+            throw new IncorrectIdException(error);
         }
         users.put(user.getId(), user);
         log.info("Пользователь id {} обновлен: {}", user.getId(), user);

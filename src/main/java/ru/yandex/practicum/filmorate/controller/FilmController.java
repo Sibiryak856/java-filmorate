@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.IncorrectIdException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -58,6 +59,11 @@ public class FilmController {
             @PathVariable() Integer id,
             @PathVariable() Integer userId
     ) {
+        if (id < 0 || userId < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         filmService.updateLike(userId, id, RequestMethod.PUT);
     }
 
@@ -66,6 +72,11 @@ public class FilmController {
             @PathVariable() Integer id,
             @PathVariable() Integer userId
     ) {
+        if (id < 0 || userId < 0) {
+            String error = "Id не может быть отрицательным числом: %d";
+            log.error(error);
+            throw new IncorrectIdException(error);
+        }
         filmService.updateLike(userId, id, RequestMethod.DELETE);
     }
 }
