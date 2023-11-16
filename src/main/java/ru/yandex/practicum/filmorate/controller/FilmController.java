@@ -1,10 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.ValidateService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.*;
 
@@ -13,52 +14,58 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
 
-    private int filmId = 0;
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
 
-    ValidateService validateService = new ValidateService();
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public List<Film> getAll() {
-        log.info("GET /films {}", films.size());
-        return new ArrayList<>(films.values());
+        return filmService.filmStorage.getAll();
     }
 
-    @GetMapping(value = "/{id}")
-    public Film get(@PathVariable Integer id) {
-        log.info("Get /films {}", films.get(id));
-        if (!films.containsKey(id)) {
-            String error = "Фильма с таким id не существует";
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable Integer id) {
+        return filmService.filmStorage.getFilm(id);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getTopFilms(
+            @RequestParam(defaultValue = "10", required = false) Integer count
+    ) {
+        if (count <= 0) {
+            String error = String.format("Некорректный параметр count=%d", count);
             log.error(error);
             throw new ValidateException(error);
         }
-        return films.get(id);
+        return filmService.getTopFilms(count);
     }
 
     @PostMapping
     public Film create(@RequestBody Film film) {
-        validateService.filmValidation(film);
-        film.setId(++filmId);
-        log.info("POST /films {}", film);
-        films.put(film.getId(), film);
-        return film;
+        return filmService.filmStorage.create(film);
     }
 
     @PutMapping
     public Film update(@RequestBody Film film) {
-        if (film.getId() == null) {
-            String error = "Не указан id фильма";
-            log.error(error);
-            throw new ValidateException(error);
-        }
-        validateService.filmValidation(film);
-        if (!films.containsKey(film.getId())) {
-            String error = "Фильма с таким id не существует";
-            log.error(error);
-            throw new ValidateException(error);
-        }
-        log.info("PUT /films {} updated: {}", film.getId(), film);
-        films.put(film.getId(), film);
-        return film;
+        return filmService.filmStorage.update(film);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(
+            @PathVariable() Integer id,
+            @PathVariable() Integer userId
+    ) {
+        filmService.updateLike(userId, id, RequestMethod.PUT);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(
+            @PathVariable() Integer id,
+            @PathVariable() Integer userId
+    ) {
+        filmService.updateLike(userId, id, RequestMethod.DELETE);
     }
 }
