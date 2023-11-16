@@ -32,7 +32,13 @@ public class InMemoryUserStorage implements UserStorage {
     @Override
     public User getUser(Integer id) {
         if (!users.containsKey(id)) {
-            String error = String.format("Пользователя с таким id=%d не существует", id);
+            String error;
+            if (id < 0) {
+                error = String.format("Id пользователя не может быть отрицательным числом: %d", id);
+                log.error(error);
+                throw new NoSuchElementException(error);
+            }
+            error = String.format("Пользователя с таким id=%d не существует", id);
             log.error(error);
             throw new NoSuchElementException(error);
         }

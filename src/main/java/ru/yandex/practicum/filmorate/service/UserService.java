@@ -39,7 +39,7 @@ public class UserService {
                 .collect(Collectors.toSet());
         log.info("Обработан запрос вывода общих друзей ids {} и {}", userId, friendId);
         return commonFriendsId.stream()
-                .map(id -> userStorage.getAll().get(id))
+                .map(id -> userStorage.getUser(id))
                 .collect(Collectors.toList());
     }
 
@@ -49,7 +49,7 @@ public class UserService {
 
         log.info("Обработан запрос вывода друзей пользователя {} ", userId);
         return friends.stream()
-                .map(id -> userStorage.getAll().get(id))
+                .map(id -> userStorage.getUser(id))
                 .collect(Collectors.toList());
     }
 

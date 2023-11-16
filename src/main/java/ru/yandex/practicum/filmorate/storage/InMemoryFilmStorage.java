@@ -32,7 +32,13 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film getFilm(Integer id) {
         if (!films.containsKey(id)) {
-            String error = "Фильма с таким id не существует";
+            String error;
+            if (id < 0) {
+                error = String.format("Id фильма не может быть отрицательным числом: %d", id);
+                log.error(error);
+                throw new NoSuchElementException(error);
+            }
+            error = String.format("Фильма с таким id=%d не существует", id);
             log.error(error);
             throw new NoSuchElementException(error);
         }
