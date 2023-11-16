@@ -1,10 +1,9 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import lombok.extern.apachecommons.CommonsLog;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 
@@ -70,10 +69,4 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Пользователь id {} обновлен: {}", user.getId(), user);
         return user;
     }
-
-    /*List<Integer> getFriends(Integer id) {
-        return new ArrayList<>(getUser(id).getFriends());
-    }*/
-
-
 }

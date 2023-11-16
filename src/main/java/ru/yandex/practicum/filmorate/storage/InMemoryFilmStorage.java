@@ -3,15 +3,12 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("memoryFilmStorage")
 @Slf4j
@@ -69,5 +66,25 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Фильм id {} обновлен: {}", film.getId(), film);
         films.put(film.getId(), film);
         return film;
+    }
+
+    @Override
+    public List<Film> getTopTenFilmsByLikes() {
+        List<Film> topFilmsById = getAll().stream()
+                .sorted(new TopFilmComparator())
+                .collect(Collectors.toList());
+        return topFilmsById.subList(0, 9);
+    }
+
+    private class TopFilmComparator implements Comparator<Film> {
+        @Override
+        public int compare(Film f1, Film f2) {
+            if (f1.getLikes().size() > f2.getLikes().size()) {
+                return -1;
+            } else if (f1.getLikes().size() < f2.getLikes().size()) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }

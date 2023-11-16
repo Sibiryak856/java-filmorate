@@ -2,14 +2,11 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -35,6 +32,14 @@ public class UserController {
         return userService.userStorage.getUser(id);
     }
 
+    @GetMapping("/common")
+    public List<User> getCommonFriends(
+            @RequestParam() Integer initiatorId,
+            @RequestParam() Integer requestedId
+    ) {
+        return userService.getCommonFriends(initiatorId, requestedId);
+    }
+
     @PostMapping
     public User create(@RequestBody User user) {
         return userService.userStorage.create(user);
@@ -43,5 +48,14 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User user) {
         return userService.userStorage.update(user);
+    }
+
+    @PutMapping("/friend")
+    public User updateFriends(
+            @RequestParam() Integer initiatorId,
+            @RequestParam() Integer requestedId,
+            @RequestParam() String action
+    ) {
+        return userService.updateFriend(initiatorId, requestedId, action);
     }
 }

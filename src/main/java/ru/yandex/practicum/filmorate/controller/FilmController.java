@@ -32,6 +32,11 @@ public class FilmController {
         return filmService.filmStorage.getFilm(id);
     }
 
+    @GetMapping("/topFilms")
+    public List<Film> getTopFilms() {
+        return filmService.getTopFilms();
+    }
+
     @PostMapping
     public Film create(@RequestBody Film film) {
         return filmService.filmStorage.create(film);
@@ -40,5 +45,14 @@ public class FilmController {
     @PutMapping
     public Film update(@RequestBody Film film) {
         return filmService.filmStorage.update(film);
+    }
+
+    @PutMapping("/like")
+    public Film updateLike(
+            @RequestParam() Integer userId,
+            @RequestParam() Integer filmId,
+            @RequestParam() String action
+    ) {
+        return filmService.updateLike(userId, filmId, action);
     }
 }
