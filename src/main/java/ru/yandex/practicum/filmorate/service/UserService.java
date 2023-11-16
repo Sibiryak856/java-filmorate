@@ -63,10 +63,9 @@ public class UserService {
         Set<Integer> commonFriendsId = initiatorFriends.stream()
                 .filter(requestedUserFriends::contains)
                 .collect(Collectors.toSet());
-        List<User> commonFriends = commonFriendsId.stream()
+        return commonFriendsId.stream()
                 .map(id -> userStorage.getAll().get(id))
                 .collect(Collectors.toList());
-        return commonFriends;
     }
 
     public User updateFriend(Integer initiatorId, Integer requestedId, String action) {
