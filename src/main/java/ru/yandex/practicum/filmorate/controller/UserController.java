@@ -33,7 +33,7 @@ public class UserController {
 
     @GetMapping("/{id}/friends")
     public List<User> getUserFriends(@PathVariable Integer id) {
-        return userService.getFriends(id);
+        return userService.getUserFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}") // список общих друзей id и otherId

@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component("memoryFilmStorage")
 @Slf4j

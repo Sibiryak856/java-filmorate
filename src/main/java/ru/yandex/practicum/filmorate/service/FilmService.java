@@ -34,30 +34,17 @@ public class FilmService {
         if (method.equals(DELETE)) {
             log.info("Пользователь id {} убрал лайк фильму id {}", userId, filmId);
             likes.remove(userId);
-            film.setLikes(likes);
         } else if (method.equals(PUT)) {
             log.info("Пользователь id {} поставил лайк фильму id {}", userId, filmId);
             likes.add(userId);
-            film.setLikes(likes);
         } else {
             String msg = "Некорректный запрос действия " + method;
             log.error(msg);
             throw new ValidateException(msg);
         }
-    }
-    /*public void addLike(Integer id) {
-        Film film = filmStorage.getFilm(id);
-        Set<Integer> likes = film.getLikes();
-        likes.add(id);
         film.setLikes(likes);
+        filmStorage.update(film);
     }
-
-    public void deleteLike(Integer id) {
-        Film film = filmStorage.getFilm(id);
-        Set<Integer> likes = film.getLikes();
-        likes.add(id);
-        film.setLikes(likes);
-    }*/
 
     public List<Film> getTopFilms(Integer count) {
         List<Film> topFilmsById = filmStorage.getAll().stream()

@@ -43,7 +43,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public List<User> getFriends (Integer userId) {
+    public List<User> getUserFriends(Integer userId) {
         User initiator = userStorage.getUser(userId);
         Set<Integer> friends = initiator.getFriends();
 
@@ -62,19 +62,19 @@ public class UserService {
         if(method.equals(DELETE)) {
             initiatorFriends.remove(friendId);
             requestedUserFriends.remove(userId);
-            initiator.setFriends(initiatorFriends);
-            requestedUser.setFriends(requestedUserFriends);
             log.info("Пользователь id {} успешно удалил пользователя id {} из списка друзей", userId, friendId);
         } else if (method.equals(PUT)) {
             initiatorFriends.add(friendId);
             requestedUserFriends.add(userId);
-            initiator.setFriends(initiatorFriends);
-            requestedUser.setFriends(requestedUserFriends);
             log.info("Пользователь id {} успешно добавил пользователя id {} в список друзей", userId, friendId);
         } else {
             String msg = "Некорректный запрос действия " + method;
             log.error(msg);
             throw new ValidateException(msg);
         }
+        initiator.setFriends(initiatorFriends);
+        requestedUser.setFriends(requestedUserFriends);
+        userStorage.update(initiator);
+        userStorage.update(requestedUser);
     }
 }
