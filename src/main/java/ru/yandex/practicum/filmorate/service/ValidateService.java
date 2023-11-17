@@ -1,15 +1,15 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Service
-@Slf4j
 public class ValidateService {
 
     private static final int DESCRIPTION_MAX_SIZE = 200;
@@ -18,37 +18,39 @@ public class ValidateService {
 
     public void filmValidation(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
-            String errorMessage = "Имя фильма не задано";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Имя фильма не задано");
         } else if (film.getDescription().length() >= DESCRIPTION_MAX_SIZE) {
-            String errorMessage = "Превышен лимит длины строки описания";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Превышен лимит длины строки описания");
         } else if (film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
-            String errorMessage = "Установлена слишком старая дата выхода фильма";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Установлена слишком старая дата выхода фильма");
         } else if (film.getDuration() <= MIN_FILM_DURATION) {
-            String errorMessage = "Длительность фильма меньше допустимой";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Длительность фильма меньше допустимой");
         }
     }
 
     public void userValidate(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            String errorMessage = "Введен некорректный адрес электронной почты";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Введен некорректный адрес электронной почты");
         } else if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            String errorMessage = "Логин введен некорректно";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Логин введен некорректно");
         } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            String errorMessage = "Дата рождения не может быть позже текущей даты";
-            log.error(errorMessage);
-            throw new ValidateException(errorMessage);
+            throw new ValidateException("Дата рождения не может быть позже текущей даты");
+        }
+    }
+
+    public void filmIdValidate(Map<Integer, Film> films, Integer id) {
+        if (id == null) {
+            throw new ValidateException("Не указан id фильма");
+        } else if (!films.containsKey(id)) {
+            throw new NotFoundException(String.format("Фильма с таким id=%d не существует", id));
+        }
+    }
+
+    public void userIdValidate(Map<Integer, User> users, Integer id) {
+        if (id == null) {
+            throw new ValidateException("Не указан id пользователя");
+        } else if (!users.containsKey(id)) {
+            throw new NotFoundException(String.format("Пользователя с таким id=%d не существует", id));
         }
     }
 }

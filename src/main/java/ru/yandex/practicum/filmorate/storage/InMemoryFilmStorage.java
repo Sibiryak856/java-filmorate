@@ -1,70 +1,80 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.IncorrectIdException;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.ValidateService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-@Component("memoryFilmStorage")
+@Component
 @Slf4j
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private final ValidateService validateService;
     private int filmId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
-
-    @Autowired
-    public InMemoryFilmStorage(ValidateService validateService) {
-        this.validateService = validateService;
-    }
+    private final Map<Integer, Set<Integer>> filmLikes = new HashMap<>();
 
 
     @Override
-    public List<Film> getAll() {
-        log.info("Обработан запрос получения списка фильмов: {}", films);
-        return new ArrayList<>(films.values());
+    public Map<Integer, Film> getAll() {
+        return films;
     }
 
     @Override
     public Film getFilm(Integer id) {
-        if (!films.containsKey(id)) {
-            String error = String.format("Фильма с таким id=%d не существует", id);
-            log.error(error);
-            throw new IncorrectIdException(error);
-        }
-        log.info("Обработан запрос полчения фильма id {}", films.get(id));
         return films.get(id);
     }
 
     @Override
     public Film create(Film film) {
-        validateService.filmValidation(film);
         film.setId(++filmId);
-        log.info("Создан фильм: {}", film);
         films.put(film.getId(), film);
+        filmLikes.put(film.getId(), new HashSet<>());
         return film;
     }
 
     @Override
-    public Film update(Film film) {
-        if (film.getId() == null) {
-            String error = "Не указан id фильма";
-            log.error(error);
-            throw new ValidateException(error);
-        }
-        validateService.filmValidation(film);
-        if (!films.containsKey(film.getId())) {
-            String error = "Фильма с таким id не существует";
-            log.error(error);
-            throw new IncorrectIdException(error);
-        }
-        log.info("Фильм id {} обновлен: {}", film.getId(), film);
+    public void update(Film film) {
         films.put(film.getId(), film);
-        return film;
+    }
+
+    @Override
+    public void addLike(Film film, Integer userId) {
+        Set<Integer> likes = filmLikes.get(film.getId());
+        likes.add(userId);
+        filmLikes.put(film.getId(), likes);
+    }
+
+    @Override
+    public void removeLike(Film film, Integer userId) {
+        Set<Integer> likes = filmLikes.get(film.getId());
+        if (!likes.contains(userId)) {
+            throw new NotFoundException(String.format("Пользователя с таким id=%d не существует", userId));
+        }
+        likes.remove(userId);
+        filmLikes.put(film.getId(), likes);
+    }
+
+    @Override
+    public List<Film> getTopFilms(Integer count) {
+        List<Film> topFilms = new ArrayList<>(films.values());
+        return topFilms.stream()
+                .sorted(new TopFilmComparator())
+                .limit(count)
+                .collect(Collectors.toList());
+    }
+
+    private class TopFilmComparator implements Comparator<Film> {
+        @Override
+        public int compare(Film f1, Film f2) {
+            if (filmLikes.get(f1.getId()).size() > filmLikes.get(f2.getId()).size()) {
+                return -1;
+            } else if (filmLikes.get(f1.getId()).size() < filmLikes.get(f2.getId()).size()) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }

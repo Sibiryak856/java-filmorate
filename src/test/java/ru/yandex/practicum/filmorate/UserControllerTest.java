@@ -23,8 +23,8 @@ public class UserControllerTest {
     @BeforeEach
     public void setUp() {
         validateService = new ValidateService();
-        userStorage = new InMemoryUserStorage(validateService);
-        userService = new UserService(userStorage);
+        userStorage = new InMemoryUserStorage();
+        userService = new UserService(userStorage, validateService);
         userController = new UserController(userService);
     }
 

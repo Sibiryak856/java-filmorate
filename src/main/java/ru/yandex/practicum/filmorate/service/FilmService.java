@@ -1,69 +1,74 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Service
-@Slf4j
-public class FilmService {
+public class FilmService implements FilmSvc {
 
     public final FilmStorage filmStorage;
+    private final ValidateService validateService;
 
     @Autowired
-    public FilmService(@Qualifier("memoryFilmStorage") FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, ValidateService validateService) {
         this.filmStorage = filmStorage;
+        this.validateService = validateService;
     }
 
-    public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
-        Film film = filmStorage.getFilm(filmId);
-        Set<Integer> likes = film.getLikes();
-        if (method.equals(DELETE)) {
-            log.info("Пользователь id {} убрал лайк фильму id {}", userId, filmId);
-            likes.remove(userId);
-        } else if (method.equals(PUT)) {
-            log.info("Пользователь id {} поставил лайк фильму id {}", userId, filmId);
-            likes.add(userId);
-        } else {
-            String msg = "Некорректный запрос действия " + method;
-            log.error(msg);
-            throw new ValidateException(msg);
-        }
-        film.setLikes(likes);
+
+    @Override
+    public List<Film> getAll() {
+        return new ArrayList<>(filmStorage.getAll().values());
+    }
+
+    @Override
+    public Film getFilm(Integer id) {
+        Map<Integer,Film> films = filmStorage.getAll();
+        validateService.filmIdValidate(films, id);
+        return filmStorage.getFilm(id);
+    }
+
+    @Override
+    public Film createFilm(Film film) {
+        validateService.filmValidation(film);
+        return filmStorage.create(film);
+    }
+
+    @Override
+    public void update(Film film) {
+        validateService.filmIdValidate(filmStorage.getAll(), film.getId());
+        validateService.filmValidation(film);
         filmStorage.update(film);
     }
 
-    public List<Film> getTopFilms(Integer count) {
-        List<Film> topFilmsById = filmStorage.getAll().stream()
-                .sorted(new TopFilmComparator())
-                .limit(count)
-                .collect(Collectors.toList());
-        log.info("Обработан запрос вывода топ {} фильмов", count);
-        return topFilmsById;
+    @Override
+    public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
+        Film film = getFilm(filmId);
+        if (method.equals(DELETE)) {
+            filmStorage.removeLike(film, userId);
+        } else if (method.equals(PUT)) {
+            filmStorage.addLike(film, userId);
+        } else {
+            throw new ValidateException("Некорректный запрос действия " + method);
+        }
     }
 
-    private class TopFilmComparator implements Comparator<Film> {
-        @Override
-        public int compare(Film f1, Film f2) {
-            if (f1.getLikes().size() > f2.getLikes().size()) {
-                return -1;
-            } else if (f1.getLikes().size() < f2.getLikes().size()) {
-                return 1;
-            }
-            return 0;
+    @Override
+    public List<Film> getTopFilms(Integer count) {
+        try {
+            return filmStorage.getTopFilms(count);
+        } catch (ValidateException e) {
+            throw new NotFoundException(String.format("Некорректный параметр count=%d", count));
         }
     }
 }
