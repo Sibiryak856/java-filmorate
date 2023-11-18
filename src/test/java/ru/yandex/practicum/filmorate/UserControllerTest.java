@@ -30,8 +30,19 @@ public class UserControllerTest {
 
     @Test
     public void testUserEmail() {
-        User user = new User(1, "user", "login", "name", LocalDate.of(2000,10,10));
-        User user1 = new User(1, "", "login", "name", LocalDate.of(2000,10,10));
+        User user = User.builder()
+                .email("user")
+                .login("login")
+                .name("name")
+                .birthday(LocalDate.of(2000,10,10))
+                .build();
+
+        User user1 = User.builder()
+                .email("")
+                .login("login")
+                .name("name")
+                .birthday(LocalDate.of(2000,10,10))
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user1));
@@ -39,8 +50,19 @@ public class UserControllerTest {
 
     @Test
     public void testUserLogin() {
-        User user = new User(1, "u@y.ru", "", "name", LocalDate.of(2000,10,10));
-        User user1 = new User(1, "u@y.ru", "log in", "name", LocalDate.of(2000,10,10));
+        User user = User.builder()
+                .email("u@y.ru")
+                .login("")
+                .name("name")
+                .birthday(LocalDate.of(2000,10,10))
+                .build();
+
+        User user1 = User.builder()
+                .email("u@y.ru")
+                .login("log in")
+                .name("name")
+                .birthday(LocalDate.of(2000,10,10))
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user1));
@@ -48,14 +70,25 @@ public class UserControllerTest {
 
     @Test
     public void testEmptyUserName() {
-        User user = new User(1, "u@y.ru", "login", "", LocalDate.of(2000,10,10));
-        user.setName(null);
-        Assertions.assertEquals(user.getLogin(), userController.create(user).getName(), "Логин не присвоился имени");
+        User user = User.builder()
+                .email("u@y.ru")
+                .login("login")
+                .birthday(LocalDate.of(2000,10,10))
+                .build();
+
+        final User createdUser = userController.create(user);
+
+        Assertions.assertEquals(user.getLogin(), createdUser.getName(), "Логин не присвоился имени");
     }
 
     @Test
     public void testUserBirthday() {
-        User user = new User(1, "u@y.ru", "login", "name", LocalDate.now().plusDays(1));
+        User user = User.builder()
+                .email("u@y.ru")
+                .login("login")
+                .name("name")
+                .birthday(LocalDate.now().plusDays(1))
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> userController.create(user));
     }

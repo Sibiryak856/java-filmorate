@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -14,6 +13,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private int filmId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
+
     private final Map<Integer, Set<Integer>> filmLikes = new HashMap<>();
 
 
@@ -41,20 +41,17 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(Film film, Integer userId) {
-        Set<Integer> likes = filmLikes.get(film.getId());
+    public void addLike(Integer filmId, Integer userId) {
+        Set<Integer> likes = filmLikes.get(filmId);
         likes.add(userId);
-        filmLikes.put(film.getId(), likes);
+        filmLikes.put(filmId, likes);
     }
 
     @Override
-    public void removeLike(Film film, Integer userId) {
-        Set<Integer> likes = filmLikes.get(film.getId());
-        if (!likes.contains(userId)) {
-            throw new NotFoundException(String.format("Пользователя с таким id=%d не существует", userId));
-        }
+    public void removeLike(Integer filmId, Integer userId) {
+        Set<Integer> likes = filmLikes.get(filmId);
         likes.remove(userId);
-        filmLikes.put(film.getId(), likes);
+        filmLikes.put(filmId, likes);
     }
 
     @Override
@@ -76,5 +73,10 @@ public class InMemoryFilmStorage implements FilmStorage {
             }
             return 0;
         }
+    }
+
+    @Override
+    public Set<Integer> getFilmLikes(Integer id) {
+        return filmLikes.get(id);
     }
 }

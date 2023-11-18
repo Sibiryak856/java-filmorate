@@ -12,11 +12,11 @@ public interface UserSvc {
 
     User create(User user);
 
-    void update(User user);
+    User update(User user);
 
-    List<User> getCommonFriends(User user, User friend);
+    List<User> getCommonFriends(Integer id, Integer otherId);
 
-    List<User> getUserFriends(User user);
+    List<User> getUserFriends(Integer integer);
 
     void updateFriendship(Integer userId, Integer friendId, RequestMethod method);
 

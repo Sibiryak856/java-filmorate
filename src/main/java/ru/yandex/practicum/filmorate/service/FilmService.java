@@ -1,74 +1,22 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.*;
+import java.util.List;
 
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+public interface FilmService {
 
-@Service
-public class FilmService implements FilmSvc {
+    List<Film> getAll();
 
-    public final FilmStorage filmStorage;
-    private final ValidateService validateService;
+    Film getFilm(Integer id);
 
-    @Autowired
-    public FilmService(FilmStorage filmStorage, ValidateService validateService) {
-        this.filmStorage = filmStorage;
-        this.validateService = validateService;
-    }
+    Film createFilm(Film film);
 
+    Film update(Film film);
 
-    @Override
-    public List<Film> getAll() {
-        return new ArrayList<>(filmStorage.getAll().values());
-    }
+    void updateLike(Integer userId, Integer filmId, RequestMethod method);
 
-    @Override
-    public Film getFilm(Integer id) {
-        Map<Integer,Film> films = filmStorage.getAll();
-        validateService.filmIdValidate(films, id);
-        return filmStorage.getFilm(id);
-    }
+    List<Film> getTopFilms(Integer count);
 
-    @Override
-    public Film createFilm(Film film) {
-        validateService.filmValidation(film);
-        return filmStorage.create(film);
-    }
-
-    @Override
-    public void update(Film film) {
-        validateService.filmIdValidate(filmStorage.getAll(), film.getId());
-        validateService.filmValidation(film);
-        filmStorage.update(film);
-    }
-
-    @Override
-    public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
-        Film film = getFilm(filmId);
-        if (method.equals(DELETE)) {
-            filmStorage.removeLike(film, userId);
-        } else if (method.equals(PUT)) {
-            filmStorage.addLike(film, userId);
-        } else {
-            throw new ValidateException("Некорректный запрос действия " + method);
-        }
-    }
-
-    @Override
-    public List<Film> getTopFilms(Integer count) {
-        try {
-            return filmStorage.getTopFilms(count);
-        } catch (ValidateException e) {
-            throw new NotFoundException(String.format("Некорректный параметр count=%d", count));
-        }
-    }
 }

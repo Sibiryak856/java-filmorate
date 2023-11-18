@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.FilmsService;
 import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 public class FilmControllerTest {
 
     private FilmController filmController;
-    private FilmService filmService;
+    private FilmsService filmsService;
     private InMemoryFilmStorage filmStorage;
     private ValidateService validateService;
 
@@ -23,38 +23,56 @@ public class FilmControllerTest {
     public void setUp() {
         validateService = new ValidateService();
         filmStorage = new InMemoryFilmStorage();
-        filmService = new FilmService(filmStorage, validateService);
-        filmController = new FilmController(filmService);
+        filmsService = new FilmsService(filmStorage, validateService);
+        filmController = new FilmController(filmsService);
     }
 
     @Test
     public void testEmptyFilmName() {
-        Film film = new Film(1, "", "description", LocalDate.of(2000,10,10), 100);
+        Film film = Film.builder()
+                .name("")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 10, 10))
+                .duration(100)
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> filmController.create(film));
     }
 
     @Test
     public void testLengthFilmDescription() {
-        Film film = new Film(1, "name",
-                "descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription" +
+        Film film = Film.builder()
+                .name("name")
+                .description("descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription" +
                         "descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription" +
-                        "descriptiondescriptiondescriptiondescriptiondescription",
-                LocalDate.of(2000,10,10), 100);
+                        "descriptiondescriptiondescriptiondescriptiondescription")
+                .releaseDate(LocalDate.of(2000, 10, 10))
+                .duration(100)
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> filmController.create(film));
     }
 
     @Test
     public void testFilmReleaseDate() {
-        Film film = new Film(1, "name", "description", LocalDate.of(1895,12,27), 100);
+        Film film = Film.builder()
+                .name("name")
+                .description("description")
+                .releaseDate(LocalDate.of(1895, 12, 27))
+                .duration(100)
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> filmController.create(film));
     }
 
     @Test
     public void testFilmDuration() {
-        Film film = new Film(1, "name", "description", LocalDate.of(2000,12,27), 0);
+        Film film = Film.builder()
+                .name("name")
+                .description("description")
+                .releaseDate(LocalDate.of(2000, 10, 10))
+                .duration(0)
+                .build();
 
         Assertions.assertThrows(ValidateException.class, () -> filmController.create(film));
     }

@@ -37,20 +37,4 @@ public class ValidateService {
             throw new ValidateException("Дата рождения не может быть позже текущей даты");
         }
     }
-
-    public void filmIdValidate(Map<Integer, Film> films, Integer id) {
-        if (id == null) {
-            throw new ValidateException("Не указан id фильма");
-        } else if (!films.containsKey(id)) {
-            throw new NotFoundException(String.format("Фильма с таким id=%d не существует", id));
-        }
-    }
-
-    public void userIdValidate(Map<Integer, User> users, Integer id) {
-        if (id == null) {
-            throw new ValidateException("Не указан id пользователя");
-        } else if (!users.containsKey(id)) {
-            throw new NotFoundException(String.format("Пользователя с таким id=%d не существует", id));
-        }
-    }
 }

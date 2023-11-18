@@ -39,9 +39,9 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getCommonFriends(User user, User friend) {
-        Set<Integer> commonFriendsId = userFriends.get(user.getId()).stream()
-                .filter(userFriends.get(friend.getId())::contains)
+    public List<User> getCommonFriends(Integer id, Integer otherId) {
+        Set<Integer> commonFriendsId = userFriends.get(id).stream()
+                .filter(userFriends.get(otherId)::contains)
                 .collect(Collectors.toSet());
         return commonFriendsId.stream()
                 .map(users::get)
@@ -49,30 +49,30 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriends(User user) {
-        Set<Integer> friends = userFriends.get(user.getId());
+    public List<User> getFriends(Integer id) {
+        Set<Integer> friends = userFriends.get(id);
         return friends.stream()
                 .map(users::get)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void addFriend(User initiator, User friend) {
-        Set<Integer> initiatorFriends = userFriends.get(initiator.getId());
-        initiatorFriends.add(friend.getId());
-        userFriends.put(initiator.getId(), initiatorFriends);
-        Set<Integer> friendFriends = userFriends.get(friend.getId());
-        friendFriends.add(initiator.getId());
-        userFriends.put(friend.getId(), friendFriends);
+    public void addFriend(Integer userId, Integer otherId) {
+        Set<Integer> initiatorFriends = userFriends.get(userId);
+        initiatorFriends.add(otherId);
+        userFriends.put(userId, initiatorFriends);
+        Set<Integer> friendFriends = userFriends.get(otherId);
+        friendFriends.add(userId);
+        userFriends.put(otherId, friendFriends);
     }
 
     @Override
-    public void removeFriend(User initiator, User friend) {
-        Set<Integer> initiatorFriends = userFriends.get(initiator.getId());
-        initiatorFriends.remove(friend.getId());
-        userFriends.put(initiator.getId(), initiatorFriends);
-        Set<Integer> friendFriends = userFriends.get(friend.getId());
-        friendFriends.remove(initiator.getId());
-        userFriends.put(friend.getId(), friendFriends);
+    public void removeFriend(Integer userId, Integer otherId) {
+        Set<Integer> initiatorFriends = userFriends.get(userId);
+        initiatorFriends.remove(otherId);
+        userFriends.put(userId, initiatorFriends);
+        Set<Integer> friendFriends = userFriends.get(otherId);
+        friendFriends.remove(userId);
+        userFriends.put(otherId, friendFriends);
     }
 }

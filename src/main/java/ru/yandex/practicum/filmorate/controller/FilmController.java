@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.FilmsService;
 
 import java.util.*;
 
@@ -16,17 +16,17 @@ import java.util.*;
 @RequestMapping("/films")
 public class FilmController {
 
-    private final FilmService filmService;
+    private final FilmsService filmsService;
 
     @Autowired
-    public FilmController(FilmService filmService) {
-        this.filmService = filmService;
+    public FilmController(FilmsService filmsService) {
+        this.filmsService = filmsService;
     }
 
     @GetMapping
     public List<Film> getAll() {
         log.info("Request received: GET /films");
-        List<Film> films = filmService.getAll();
+        List<Film> films = filmsService.getAll();
         log.info("Request GET /films processed: films: {}", films);
         return films;
     }
@@ -34,7 +34,7 @@ public class FilmController {
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable Integer id) {
         log.info("Request received: GET /films id={}", id);
-        Film film = filmService.getFilm(id);
+        Film film = filmsService.getFilm(id);
         log.info("Request GET /films id={} processed: film: {}", id, film);
         return film;
     }
@@ -49,7 +49,7 @@ public class FilmController {
             log.error(error);
             throw new ValidateException(error);
         }
-        List<Film> topFilms = filmService.getTopFilms(count);
+        List<Film> topFilms = filmsService.getTopFilms(count);
         log.info("Request GET /films/popular processed: topfilms: {}", topFilms);
         return topFilms;
     }
@@ -57,7 +57,7 @@ public class FilmController {
     @PostMapping
     public Film create(@RequestBody Film film) {
         log.info("Request received: POST /films: {}", film);
-        Film createdFilm = filmService.createFilm(film);
+        Film createdFilm = filmsService.createFilm(film);
         log.info("Request POST /films processed: film is created: {}", createdFilm);
         return createdFilm;
     }
@@ -65,8 +65,7 @@ public class FilmController {
     @PutMapping
     public Film update(@RequestBody Film film) {
         log.info("Request received: PUT /films: {}", film);
-        filmService.update(film);
-        Film updatedFilm = filmService.getFilm(film.getId());
+        Film updatedFilm = filmsService.update(film);
         log.info("Request PUT /films processed: film is updated: {}", updatedFilm);
         return updatedFilm;
     }
@@ -77,7 +76,7 @@ public class FilmController {
             @PathVariable() Integer userId
     ) {
         log.info("Request received: PUT /id={}/like/userId={}", id, userId);
-        filmService.updateLike(userId, id, RequestMethod.PUT);
+        filmsService.updateLike(userId, id, RequestMethod.PUT);
         log.info("Request PUT /id={}/like/userId={} processed: like is added", id, userId);
 
     }
@@ -88,7 +87,7 @@ public class FilmController {
             @PathVariable() Integer userId
     ) {
         log.info("Request received: DELETE /id={}/like/userId={}", id, userId);
-        filmService.updateLike(userId, id, RequestMethod.DELETE);
+        filmsService.updateLike(userId, id, RequestMethod.DELETE);
         log.info("Request DELETE /id={}/like/userId={} processed: like is removed", id, userId);
     }
 }

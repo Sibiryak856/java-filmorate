@@ -40,8 +40,7 @@ public class UserController {
     @GetMapping("/{id}/friends")
     public List<User> getUserFriends(@PathVariable Integer id) {
         log.info("Request received: GET /users/id={}/friends", id);
-        User user = userService.getUser(id);
-        List<User> userFriends = userService.getUserFriends(user);
+        List<User> userFriends = userService.getUserFriends(id);
         log.info("Request GET /users/id=/friends processed: {}", userFriends);
         return userFriends;
     }
@@ -52,9 +51,7 @@ public class UserController {
             @PathVariable Integer otherId
     ) {
         log.info("Request received: GET /users/id={}/friends/common/otherId={}", id, otherId);
-        User user = userService.getUser(id);
-        User friend = userService.getUser(otherId);
-        List<User> commonFriends = userService.getCommonFriends(user, friend);
+        List<User> commonFriends = userService.getCommonFriends(id, otherId);
         log.info("Request GET /users/id/friends/common/otherId processed: {}", commonFriends);
         return commonFriends;
     }
@@ -70,9 +67,9 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User user) {
         log.info("Request received: PUT /users: {}", user);
-        userService.update(user);
-        log.info("Request PUT /users processed: user={} is updated", user.getId());
-        return userService.getUser(user.getId());
+        User updatedUser = userService.update(user);
+        log.info("Request PUT /users processed: user: {} is updated", updatedUser);
+        return updatedUser;
     }
 
 
