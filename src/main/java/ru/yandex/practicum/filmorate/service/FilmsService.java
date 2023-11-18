@@ -18,7 +18,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @Service
 public class FilmsService implements FilmService {
 
-    public final FilmStorage filmStorage;
+    public FilmStorage filmStorage;
     private final ValidateService validateService;
 
     @Autowired

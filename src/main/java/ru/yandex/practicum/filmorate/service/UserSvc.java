@@ -16,8 +16,8 @@ public interface UserSvc {
 
     List<User> getCommonFriends(Integer id, Integer otherId);
 
-    List<User> getUserFriends(Integer integer);
+    List<User> getUserFriends(Integer id);
 
-    void updateFriendship(Integer userId, Integer friendId, RequestMethod method);
+    void updateFriendship(Integer id, Integer otherId, RequestMethod method);
 
 }

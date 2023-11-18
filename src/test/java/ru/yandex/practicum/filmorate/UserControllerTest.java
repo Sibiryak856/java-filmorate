@@ -36,7 +36,6 @@ public class UserControllerTest {
                 .name("name")
                 .birthday(LocalDate.of(2000,10,10))
                 .build();
-
         User user1 = User.builder()
                 .email("")
                 .login("login")
@@ -56,7 +55,6 @@ public class UserControllerTest {
                 .name("name")
                 .birthday(LocalDate.of(2000,10,10))
                 .build();
-
         User user1 = User.builder()
                 .email("u@y.ru")
                 .login("log in")
@@ -76,9 +74,7 @@ public class UserControllerTest {
                 .birthday(LocalDate.of(2000,10,10))
                 .build();
 
-        final User createdUser = userController.create(user);
-
-        Assertions.assertEquals(user.getLogin(), createdUser.getName(), "Логин не присвоился имени");
+        Assertions.assertEquals(user.getLogin(), userController.create(user).getName(), "Логин не присвоился имени");
     }
 
     @Test
