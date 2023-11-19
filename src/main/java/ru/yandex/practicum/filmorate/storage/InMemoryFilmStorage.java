@@ -25,7 +25,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(Optional<Integer> id) {
-        if(id.isEmpty()) {
+        if (id.isEmpty()) {
             throw new ValidateException("Не указан id фильма");
         }
         return films.get(id.get());
