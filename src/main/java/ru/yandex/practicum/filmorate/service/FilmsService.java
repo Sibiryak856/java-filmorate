@@ -79,6 +79,7 @@ public class FilmsService implements FilmService {
     public List<Film> getTopFilms(Integer count) {
         return filmStorage.getTopFilms(count);
     }
+
     private void checkFilmId(Integer id) {
         if (!getAllForCheck().containsKey(id)) {
             throw new NotFoundException(String.format("Фильм с таким id=%d не существует", id));
