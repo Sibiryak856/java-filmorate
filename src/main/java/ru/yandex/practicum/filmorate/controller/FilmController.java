@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmsService;
 
+import javax.validation.constraints.Min;
 import java.util.*;
 
 @RestController
@@ -41,14 +41,11 @@ public class FilmController {
 
     @GetMapping("/popular")
     public List<Film> getTopFilms(
-            @RequestParam(defaultValue = "10", required = false) Integer count //
+            @RequestParam(defaultValue = "10", required = false)
+            @Min(value = 1, message = "Count could be bigger than 0")
+            Integer count
     ) {
         log.info("Request received: GET /films/popular");
-        if (count <= 0) {
-            String error = String.format("Некорректный параметр count=%d", count);
-            log.error(error);
-            throw new ValidateException(error);
-        }
         List<Film> topFilms = filmsService.getTopFilms(count);
         log.info("Request GET /films/popular processed: topfilms: {}", topFilms);
         return topFilms;

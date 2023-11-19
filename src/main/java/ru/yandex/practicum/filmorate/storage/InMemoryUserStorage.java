@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -21,8 +22,11 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User getUser(Integer id) {
-        return users.get(id);
+    public User getUser(Optional<Integer> id) {
+        if (id.isEmpty()) {
+            throw new ValidateException("Не указан id пользователя");
+        }
+        return users.get(id.get());
     }
 
     @Override

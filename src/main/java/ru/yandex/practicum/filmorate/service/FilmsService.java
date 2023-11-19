@@ -7,10 +7,12 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -19,12 +21,14 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 public class FilmsService implements FilmService {
 
     public FilmStorage filmStorage;
+    private UserStorage userStorage;
     private final ValidateService validateService;
 
     @Autowired
-    public FilmsService(FilmStorage filmStorage, ValidateService validateService) {
+    public FilmsService(FilmStorage filmStorage, ValidateService validateService, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.validateService = validateService;
+        this.userStorage = userStorage;
     }
 
     @Override
@@ -35,7 +39,7 @@ public class FilmsService implements FilmService {
     @Override
     public Film getFilm(Integer id) {
         checkFilmId(id);
-        Film film = filmStorage.getFilm(id);
+        Film film = filmStorage.getFilm(Optional.ofNullable(id));
         if (film == null) {
             throw new NotFoundException("Фильм не найден");
         }
@@ -53,13 +57,13 @@ public class FilmsService implements FilmService {
         checkFilmId(film.getId());
         validateService.filmValidation(film);
         filmStorage.update(film);
-        return filmStorage.getFilm(film.getId());
+        return filmStorage.getFilm(Optional.ofNullable(film.getId()));
     }
 
     @Override
     public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
         checkFilmId(filmId);
-        if (!filmStorage.getFilmLikes(filmId).contains(userId)) {
+        if (!userStorage.getAll().containsKey(userId)) {
             throw new NotFoundException(String.format("Пользователь id=%d не найден", userId));
         }
         if (method.equals(DELETE)) {
@@ -73,16 +77,10 @@ public class FilmsService implements FilmService {
 
     @Override
     public List<Film> getTopFilms(Integer count) {
-        try {
-            return filmStorage.getTopFilms(count);
-        } catch (ValidateException e) {
-            throw new NotFoundException(String.format("Некорректный параметр count=%d", count));
-        }
+        return filmStorage.getTopFilms(count);
     }
     private void checkFilmId(Integer id) {
-        if (id == null) {
-            throw new ValidateException("Не указан id фильма");
-        } else if (!getAllForCheck().containsKey(id)) {
+        if (!getAllForCheck().containsKey(id)) {
             throw new NotFoundException(String.format("Фильм с таким id=%d не существует", id));
         }
     }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
@@ -23,8 +24,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilm(Integer id) {
-        return films.get(id);
+    public Film getFilm(Optional<Integer> id) {
+        if(id.isEmpty()) {
+            throw new ValidateException("Не указан id фильма");
+        }
+        return films.get(id.get());
     }
 
     @Override

@@ -4,12 +4,13 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface UserStorage {
 
     Map<Integer, User> getAll();
 
-    User getUser(Integer id);
+    User getUser(Optional<Integer> id);
 
     User create(User user);
 

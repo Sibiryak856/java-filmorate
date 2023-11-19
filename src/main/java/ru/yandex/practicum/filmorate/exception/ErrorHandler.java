@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
-
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
