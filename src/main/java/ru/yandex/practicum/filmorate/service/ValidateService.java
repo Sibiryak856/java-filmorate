@@ -14,7 +14,7 @@ public class ValidateService {
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
     private static final int MIN_FILM_DURATION = 0;
 
-    public void filmValidation(Film film) {
+    public void filmValidate(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             throw new ValidateException("Имя фильма не задано");
         } else if (film.getDescription().length() >= DESCRIPTION_MAX_SIZE) {

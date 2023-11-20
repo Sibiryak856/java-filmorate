@@ -4,14 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -33,60 +30,52 @@ public class FilmsService implements FilmService {
 
     @Override
     public List<Film> getAll() {
-        return new ArrayList<>(filmStorage.getAll().values());
+        return filmStorage.getAll();
     }
 
     @Override
     public Film getFilm(Integer id) {
-        checkFilmId(id);
-        Film film = filmStorage.getFilm(Optional.ofNullable(id));
+        Optional<Film> film = filmStorage.getFilm(id);
         if (film == null) {
             throw new NotFoundException("Фильм не найден");
         }
-        return film;
+        return film.get();
     }
 
     @Override
     public Film createFilm(Film film) {
-        validateService.filmValidation(film);
+        validateService.filmValidate(film);
         return filmStorage.create(film);
     }
 
     @Override
     public Film update(Film film) {
-        checkFilmId(film.getId());
-        validateService.filmValidation(film);
+        Optional<Film> updatingFilm = filmStorage.getFilm(film.getId());
+        if (updatingFilm == null) {
+            throw new NotFoundException("Фильм не найден");
+        }
+        validateService.filmValidate(film);
         filmStorage.update(film);
-        return filmStorage.getFilm(Optional.ofNullable(film.getId()));
+        return filmStorage.getFilm(film.getId()).get();
     }
 
     @Override
     public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
-        checkFilmId(filmId);
-        if (!userStorage.getAll().containsKey(userId)) {
+        if (filmStorage.getFilm(filmId).isEmpty()) {
+            throw new NotFoundException(String.format("Фильм id=%d не найден", filmId));
+        } else if (userStorage.getUser(userId).isEmpty()) {
             throw new NotFoundException(String.format("Пользователь id=%d не найден", userId));
         }
-        if (method.equals(DELETE)) {
+
+        if (method == DELETE) {
             filmStorage.removeLike(filmId, userId);
-        } else if (method.equals(PUT)) {
+        } else if (method == PUT) {
             filmStorage.addLike(filmId, userId);
-        } else {
-            throw new ValidateException("Некорректный запрос действия " + method);
         }
     }
 
     @Override
     public List<Film> getTopFilms(Integer count) {
         return filmStorage.getTopFilms(count);
-    }
-
-    private void checkFilmId(Integer id) {
-        if (!getAllForCheck().containsKey(id)) {
-            throw new NotFoundException(String.format("Фильм с таким id=%d не существует", id));
-        }
-    }
-
-    private Map<Integer, Film> getAllForCheck() {
-        return filmStorage.getAll();
     }
 }

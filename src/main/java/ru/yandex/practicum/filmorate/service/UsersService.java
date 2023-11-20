@@ -4,13 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -30,17 +27,16 @@ public class UsersService implements UserService {
 
     @Override
     public List<User> getAll() {
-        return new ArrayList<>(userStorage.getAll().values());
+        return userStorage.getAll();
     }
 
     @Override
     public User getUser(Integer id) {
-        checkUserId(id);
-        User user = userStorage.getUser(Optional.ofNullable(id));
-        if (user == null) {
-            throw new NotFoundException("Пользователь не найден");
+        Optional<User> user = userStorage.getUser(id);
+        if (user.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", id));
         }
-        return user;
+        return user.get();
     }
 
     @Override
@@ -54,45 +50,45 @@ public class UsersService implements UserService {
 
     @Override
     public User update(User user) {
-        checkUserId(user.getId());
+        Optional<User> updatingUser = userStorage.getUser(user.getId());
+        if (updatingUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", user.getId()));
+        }
         validateService.userValidate(user);
         userStorage.update(user);
-        return userStorage.getUser(Optional.ofNullable(user.getId()));
+        return updatingUser.get();
     }
 
     @Override
     public List<User> getCommonFriends(Integer id, Integer otherId) {
-        checkUserId(id);
-        checkUserId(otherId);
+        if (userStorage.getUser(id).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", id));
+        } else if (userStorage.getUser(otherId).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", otherId));
+        }
         return userStorage.getCommonFriends(id, otherId);
     }
 
     @Override
     public List<User> getUserFriends(Integer id) {
-        checkUserId(id);
+        if (userStorage.getUser(id).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", id));
+        }
         return userStorage.getFriends(id);
     }
 
     @Override
     public void updateFriendship(Integer id, Integer otherId, RequestMethod method) {
-        checkUserId(id);
-        checkUserId(otherId);
-        if (method.equals(DELETE)) {
+        if (userStorage.getUser(id).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", id));
+        } else if (userStorage.getUser(otherId).isEmpty()) {
+            throw new NotFoundException(String.format("Пользователь id=%d не найден", otherId));
+        }
+
+        if (method == DELETE) {
             userStorage.removeFriend(id, otherId);
-        } else if (method.equals(PUT)) {
+        } else if (method == PUT) {
             userStorage.addFriend(id, otherId);
-        } else {
-            throw new ValidateException(String.format("Некорректный запрос действия " + method));
         }
-    }
-
-    private void checkUserId(Integer id) {
-        if (!getAllForCheck().containsKey(id)) {
-            throw new NotFoundException(String.format("Пользователь с таким id=%d не существует", id));
-        }
-    }
-
-    private Map<Integer, User> getAllForCheck() {
-        return userStorage.getAll();
     }
 }

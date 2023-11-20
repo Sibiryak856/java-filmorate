@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -17,16 +16,13 @@ public class InMemoryUserStorage implements UserStorage {
     private final Map<Integer, Set<Integer>> userFriends = new HashMap<>();
 
     @Override
-    public Map<Integer, User> getAll() {
-        return users;
+    public List<User> getAll() {
+        return new ArrayList<>(users.values());
     }
 
     @Override
-    public User getUser(Optional<Integer> id) {
-        if (id.isEmpty()) {
-            throw new ValidateException("Не указан id пользователя");
-        }
-        return users.get(id.get());
+    public Optional<User> getUser(Integer id) {
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
