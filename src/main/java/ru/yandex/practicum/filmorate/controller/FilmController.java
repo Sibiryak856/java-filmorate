@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmsService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import java.util.*;
 
@@ -39,11 +40,11 @@ public class FilmController {
         return film;
     }
 
+    @Valid
     @GetMapping("/popular")
     public List<Film> getTopFilms(
             @RequestParam(defaultValue = "10", required = false)
-            @Min(value = 1, message = "Count could be bigger than 0")
-            Integer count
+            @Min(1) Integer count
     ) {
         log.info("Request received: GET /films/popular");
         List<Film> topFilms = filmsService.getTopFilms(count);
@@ -52,7 +53,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         log.info("Request received: POST /films: {}", film);
         Film createdFilm = filmsService.createFilm(film);
         log.info("Request POST /films processed: film is created: {}", createdFilm);
@@ -60,7 +61,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film) {
         log.info("Request received: PUT /films: {}", film);
         Film updatedFilm = filmsService.update(film);
         log.info("Request PUT /films processed: film is updated: {}", updatedFilm);

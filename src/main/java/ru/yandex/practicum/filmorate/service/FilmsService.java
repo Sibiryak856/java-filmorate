@@ -2,12 +2,14 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,8 +38,8 @@ public class FilmsService implements FilmService {
     @Override
     public Film getFilm(Integer id) {
         Optional<Film> film = filmStorage.getFilm(id);
-        if (film == null) {
-            throw new NotFoundException("Фильм не найден");
+        if (film.isEmpty()) {
+            throw new NotFoundException(String.format("Фильм id=%d не найден", id));
         }
         return film.get();
     }
@@ -50,8 +52,7 @@ public class FilmsService implements FilmService {
 
     @Override
     public Film update(Film film) {
-        Optional<Film> updatingFilm = filmStorage.getFilm(film.getId());
-        if (updatingFilm == null) {
+        if (filmStorage.getFilm(film.getId()).isEmpty()) {
             throw new NotFoundException("Фильм не найден");
         }
         validateService.filmValidate(film);

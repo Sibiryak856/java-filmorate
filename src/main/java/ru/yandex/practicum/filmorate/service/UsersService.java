@@ -50,13 +50,12 @@ public class UsersService implements UserService {
 
     @Override
     public User update(User user) {
-        Optional<User> updatingUser = userStorage.getUser(user.getId());
-        if (updatingUser.isEmpty()) {
+        if (userStorage.getUser(user.getId()).isEmpty()) {
             throw new NotFoundException(String.format("Пользователь id=%d не найден", user.getId()));
         }
         validateService.userValidate(user);
         userStorage.update(user);
-        return updatingUser.get();
+        return userStorage.getUser(user.getId()).get();
     }
 
     @Override
