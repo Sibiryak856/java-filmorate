@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -35,11 +35,8 @@ public class FilmsService implements FilmService {
 
     @Override
     public Film getFilm(Integer id) {
-        Optional<Film> film = filmStorage.getFilm(id);
-        if (film.isEmpty()) {
-            throw new NotFoundException(String.format("Фильм id=%d не найден", id));
-        }
-        return film.get();
+        return filmStorage.getFilm(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Фильм id=%d не найден", id)));
     }
 
     @Override
@@ -50,9 +47,8 @@ public class FilmsService implements FilmService {
 
     @Override
     public Film update(Film film) {
-        if (filmStorage.getFilm(film.getId()).isEmpty()) {
-            throw new NotFoundException("Фильм не найден");
-        }
+        Film updatingFilm = filmStorage.getFilm(film.getId())
+                .orElseThrow(() -> new NotFoundException(("Обновляемый фильм не найден")));
         validateService.filmValidate(film);
         filmStorage.update(film);
         return filmStorage.getFilm(film.getId()).get();
@@ -60,11 +56,10 @@ public class FilmsService implements FilmService {
 
     @Override
     public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
-        if (filmStorage.getFilm(filmId).isEmpty()) {
-            throw new NotFoundException(String.format("Фильм id=%d не найден", filmId));
-        } else if (userStorage.getUser(userId).isEmpty()) {
-            throw new NotFoundException(String.format("Пользователь id=%d не найден", userId));
-        }
+        Film updatingFilm = filmStorage.getFilm(filmId)
+                .orElseThrow(() -> new NotFoundException(String.format("Фильм id=%d не найден", filmId)));
+        User updatingUser = userStorage.getUser(userId)
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", userId)));
 
         if (method == DELETE) {
             filmStorage.removeLike(filmId, userId);

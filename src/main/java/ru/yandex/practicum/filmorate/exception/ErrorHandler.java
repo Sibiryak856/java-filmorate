@@ -19,8 +19,10 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationException(final ValidateException e) {
-        return new ErrorResponse(e.getMessage());
+    public ErrorResponse handleValidateException(final ValidateException e) {
+        String message = e.getMessage();
+        log.info(message);
+        return new ErrorResponse(message);
     }
 
     @ExceptionHandler
@@ -34,26 +36,28 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Map<String, String> handleMethodArgumentNotValidException(
-            MethodArgumentNotValidException ex) {
+            MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        e.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
+        log.info(errors.toString());
         return errors;
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
     public Map<String, String> handleConstraintViolationException(
-            ConstraintViolationException ex) {
+            ConstraintViolationException e) {
         Map<String, String> errors = new HashMap<>();
-        ex.getConstraintViolations().forEach((error) -> {
+        e.getConstraintViolations().forEach((error) -> {
             String fieldName = error.getPropertyPath().toString();
             String errorMessage = error.getMessage();
             errors.put(fieldName, errorMessage);
         });
+        log.info(errors.toString());
         return errors;
     }
 
