@@ -9,18 +9,18 @@ public interface UserStorage {
 
     List<User> getAll();
 
-    Optional<User> getUser(Integer id);
+    Optional<User> getUser(Long id);
 
     User create(User user);
 
     void update(User user);
 
-    List<User> getCommonFriends(Integer id, Integer otherId);
+    List<User> getCommonFriends(Long id, Long otherId);
 
-    List<User> getFriends(Integer id);
+    List<User> getFriends(Long id);
 
-    void addFriend(Integer id, Integer otherId);
+    void addFriend(Long id, Long otherId);
 
-    void removeFriend(Integer id, Integer otherId);
+    void removeFriend(Long id, Long otherId);
 
 }

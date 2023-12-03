@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Integer id) {
+    public User getUser(@PathVariable Long id) {
         log.info("Request received: GET /users/id={}", id);
         User user = userService.getUser(id);
         log.info("Request GET /users/id processed: {}", user);
@@ -41,7 +41,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getUserFriends(@PathVariable Integer id) {
+    public List<User> getUserFriends(@PathVariable Long id) {
         log.info("Request received: GET /users/id={}/friends", id);
         List<User> userFriends = userService.getUserFriends(id);
         log.info("Request GET /users/id=/friends processed: {}", userFriends);
@@ -50,8 +50,8 @@ public class UserController {
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(
-            @PathVariable Integer id,
-            @PathVariable Integer otherId
+            @PathVariable Long id,
+            @PathVariable Long otherId
     ) {
         log.info("Request received: GET /users/id={}/friends/common/otherId={}", id, otherId);
         List<User> commonFriends = userService.getCommonFriends(id, otherId);
@@ -78,8 +78,8 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(
-            @PathVariable Integer id,
-            @PathVariable Integer friendId
+            @PathVariable Long id,
+            @PathVariable Long friendId
     ) {
         log.info("Request received: PUT /users/id={}/friends/friendId={}", id, friendId);
         userService.updateFriendship(id, friendId, RequestMethod.PUT);
@@ -88,8 +88,8 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(
-            @PathVariable Integer id,
-            @PathVariable Integer friendId
+            @PathVariable Long id,
+            @PathVariable Long friendId
     ) {
         log.info("Request received: DELETE /users/id={}/friends/friendId={}", id, friendId);
         userService.updateFriendship(id, friendId, RequestMethod.DELETE);

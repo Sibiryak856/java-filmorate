@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
@@ -11,9 +12,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class InMemoryUserStorage implements UserStorage {
 
-    private int userId = 0;
-    private final Map<Integer, User> users = new HashMap<>();
-    private final Map<Integer, Set<Integer>> userFriends = new HashMap<>();
+    private Long userId = 0L;
+    private final Map<Long, User> users = new HashMap<>();
+    private final Map<Long, Set<Long>> userFriends = new HashMap<>();
+    //private final Map<Integer, Friendship> friendsMutuality = new HashMap<>();
 
     @Override
     public List<User> getAll() {
@@ -21,7 +23,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public Optional<User> getUser(Integer id) {
+    public Optional<User> getUser(Long id) {
         return Optional.ofNullable(users.get(id));
     }
 
@@ -39,8 +41,8 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getCommonFriends(Integer id, Integer otherId) {
-        Set<Integer> commonFriendsId = userFriends.get(id).stream()
+    public List<User> getCommonFriends(Long id, Long otherId) {
+        Set<Long> commonFriendsId = userFriends.get(id).stream()
                 .filter(userFriends.get(otherId)::contains)
                 .collect(Collectors.toSet());
         return commonFriendsId.stream()
@@ -49,29 +51,29 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getFriends(Integer id) {
-        Set<Integer> friends = userFriends.get(id);
+    public List<User> getFriends(Long id) {
+        Set<Long> friends = userFriends.get(id);
         return friends.stream()
                 .map(users::get)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public void addFriend(Integer id, Integer otherId) {
-        Set<Integer> initiatorFriends = userFriends.get(id);
+    public void addFriend(Long id, Long otherId) {
+        Set<Long> initiatorFriends = userFriends.get(id);
         initiatorFriends.add(otherId);
         userFriends.put(id, initiatorFriends);
-        Set<Integer> friendFriends = userFriends.get(otherId);
+        Set<Long> friendFriends = userFriends.get(otherId);
         friendFriends.add(id);
         userFriends.put(otherId, friendFriends);
     }
 
     @Override
-    public void removeFriend(Integer id, Integer otherId) {
-        Set<Integer> initiatorFriends = userFriends.get(id);
+    public void removeFriend(Long id, Long otherId) {
+        Set<Long> initiatorFriends = userFriends.get(id);
         initiatorFriends.remove(otherId);
         userFriends.put(id, initiatorFriends);
-        Set<Integer> friendFriends = userFriends.get(otherId);
+        Set<Long> friendFriends = userFriends.get(otherId);
         friendFriends.remove(id);
         userFriends.put(otherId, friendFriends);
     }

@@ -30,7 +30,7 @@ public class UsersService implements UserService {
     }
 
     @Override
-    public User getUser(Integer id) {
+    public User getUser(Long id) {
         return userStorage.getUser(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
     }
@@ -54,7 +54,7 @@ public class UsersService implements UserService {
     }
 
     @Override
-    public List<User> getCommonFriends(Integer id, Integer otherId) {
+    public List<User> getCommonFriends(Long id, Long otherId) {
         User user = userStorage.getUser(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
         User otherUser = userStorage.getUser(otherId)
@@ -64,14 +64,14 @@ public class UsersService implements UserService {
     }
 
     @Override
-    public List<User> getUserFriends(Integer id) {
+    public List<User> getUserFriends(Long id) {
         User user = userStorage.getUser(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
         return userStorage.getFriends(id);
     }
 
     @Override
-    public void updateFriendship(Integer id, Integer otherId, RequestMethod method) {
+    public void updateFriendship(Long id, Long otherId, RequestMethod method) {
         User user = userStorage.getUser(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
         User otherUser = userStorage.getUser(otherId)

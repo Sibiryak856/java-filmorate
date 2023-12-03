@@ -55,7 +55,7 @@ public class FilmsService implements FilmService {
     }
 
     @Override
-    public void updateLike(Integer userId, Integer filmId, RequestMethod method) {
+    public void updateLike(Long userId, Integer filmId, RequestMethod method) {
         Film updatingFilm = filmStorage.getFilm(filmId)
                 .orElseThrow(() -> new NotFoundException(String.format("Фильм id=%d не найден", filmId)));
         User updatingUser = userStorage.getUser(userId)

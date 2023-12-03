@@ -71,7 +71,7 @@ public class FilmController {
     @PutMapping("/{id}/like/{userId}")
     public void addLike(
             @PathVariable() Integer id,
-            @PathVariable() Integer userId
+            @PathVariable() Long userId
     ) {
         log.info("Request received: PUT /id={}/like/userId={}", id, userId);
         filmsService.updateLike(userId, id, RequestMethod.PUT);
@@ -82,7 +82,7 @@ public class FilmController {
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLike(
             @PathVariable() Integer id,
-            @PathVariable() Integer userId
+            @PathVariable() Long userId
     ) {
         log.info("Request received: DELETE /id={}/like/userId={}", id, userId);
         filmsService.updateLike(userId, id, RequestMethod.DELETE);
