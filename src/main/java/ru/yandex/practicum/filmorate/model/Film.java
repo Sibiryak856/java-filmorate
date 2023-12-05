@@ -21,6 +21,6 @@ public class Film {
     private LocalDate releaseDate;
     @Min(1)
     private Integer duration;
-    private EnumSet<MPA> filmGenres;
-    private MPA filmMpa;
+    private EnumSet<FilmGenre> filmGenres;
+    private MPA filmMPA;
 }
