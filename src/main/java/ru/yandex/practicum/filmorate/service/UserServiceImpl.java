@@ -13,13 +13,13 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Service
-public class UsersService implements UserService {
+public class UserServiceImpl implements UserService {
 
     public UserStorage userStorage;
     private final ValidateService validateService;
 
     @Autowired
-    public UsersService(UserStorage userStorage, ValidateService validateService) {
+    public UserServiceImpl(UserStorage userStorage, ValidateService validateService) {
         this.userStorage = userStorage;
         this.validateService = validateService;
     }

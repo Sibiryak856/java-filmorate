@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UsersService;
+import ru.yandex.practicum.filmorate.service.UserServiceImpl;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -16,10 +16,10 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-    private final UsersService userService;
+    private final UserServiceImpl userService;
 
     @Autowired
-    public UserController(UsersService userService) {
+    public UserController(UserServiceImpl userService) {
         this.userService = userService;
     }
 

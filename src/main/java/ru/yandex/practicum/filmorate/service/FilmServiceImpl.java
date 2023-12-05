@@ -15,14 +15,14 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @Service
-public class FilmsService implements FilmService {
+public class FilmServiceImpl implements FilmService {
 
     public FilmStorage filmStorage;
     private UserStorage userStorage;
     private final ValidateService validateService;
 
     @Autowired
-    public FilmsService(FilmStorage filmStorage, ValidateService validateService, UserStorage userStorage) {
+    public FilmServiceImpl(FilmStorage filmStorage, ValidateService validateService, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.validateService = validateService;
         this.userStorage = userStorage;

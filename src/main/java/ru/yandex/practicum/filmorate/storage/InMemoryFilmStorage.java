@@ -1,14 +1,12 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
-@Slf4j
+@Component("filmInMemory")
 public class InMemoryFilmStorage implements FilmStorage {
 
     private int filmId = 0;
