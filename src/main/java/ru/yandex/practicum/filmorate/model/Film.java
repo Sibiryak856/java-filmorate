@@ -22,5 +22,5 @@ public class Film {
     @Min(1)
     private Integer duration;
     private EnumSet<FilmGenre> filmGenres;
-    private MPA filmMPA;
+    private MPA mpa;
 }
