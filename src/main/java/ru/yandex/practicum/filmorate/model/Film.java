@@ -8,6 +8,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -21,6 +24,17 @@ public class Film {
     private LocalDate releaseDate;
     @Min(1)
     private Integer duration;
-    private EnumSet<FilmGenre> filmGenres;
-    private MPA mpa;
+    private Integer mpaId;
+    private List<Integer> filmGenresId;
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("FILM_NAME", name);
+        values.put("DESCRIPTION", description);
+        values.put("RELEASE_DATE", releaseDate);
+        values.put("DURATION", duration);
+        values.put("MPA_ID", mpaId);
+        values.put("FILM_GENRES", filmGenresId.toArray());
+        return values;
+    }
 }

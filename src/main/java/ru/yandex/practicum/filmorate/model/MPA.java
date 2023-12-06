@@ -6,12 +6,13 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum MPA {
-    G("G"),
-    PG("PG"),
-    PG_13("PG-13"),
-    R("R"),
-    NC_17("NC-17");
+    G(1, "G"),
+    PG(2, "PG"),
+    PG_13(3, "PG-13"),
+    R(4, "R"),
+    NC_17(5, "NC-17");
 
+    private int id;
     private String value;
 
     public static MPA parse(String value) {
@@ -23,5 +24,16 @@ public enum MPA {
             }
         }
         return null;
+    }
+
+    public static boolean checkMpaID(Integer id) {
+        if (id != null) {
+            for (MPA mpa : MPA.values()) {
+                if (id == mpa.id) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

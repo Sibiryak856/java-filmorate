@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserFriend;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
@@ -24,26 +26,18 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAll() {
-        String sql = "select * from USERS";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
+        return jdbcTemplate.query(
+                "select * from USERS",
+                (rs, rowNum) -> makeUser(rs));
     }
 
     @Override
     public Optional<User> getUser(Long id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from USERS where USER_ID = ?", id);
-
-        if (!userRows.next()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(User.builder()
-                .id(userRows.getLong("USER_ID"))
-                .email(userRows.getString("EMAIL"))
-                .login(userRows.getString("LOGIN"))
-                .name(userRows.getString("USER_NAME"))
-                .birthday(userRows.getDate("BIRTHDAY").toLocalDate())
-                .build());
+        return Optional.ofNullable(
+                jdbcTemplate.queryForObject(
+                "select * from USERS where USER_ID = ?",
+                (rs, rowNum) -> makeUser(rs),
+                id));
     }
 
     @Override
@@ -90,8 +84,8 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getFriends(Long id) {
-        String sql = "select USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS u " +
-                "join USER_FRIENDS uf on u.USER_ID = uf.USER_ID " +
+        String sql = "select USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS as u " +
+                "join USER_FRIENDS as uf on u.USER_ID = uf.USER_ID " +
                 "group by uf.USER_ID " +
                 "where uf.USER_ID = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), id);
@@ -99,7 +93,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void addFriend(Long id, Long otherId) {
-
+/*
 
         UserFriend userFriend = UserFriend.builder().
                 userId(id).
@@ -114,7 +108,7 @@ public class UserDbStorage implements UserStorage {
             jdbcTemplate.update(sqlQuery,
                     id,
                     otherId,
-                    APPROVED.getValue());
+                    APPROVED.getValue());*/
     }
 
     @Override
