@@ -6,16 +6,16 @@ import lombok.*;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class MpaRating {
+public class MpaRate {
 
     private Integer id;
     private String name;
 
-    public MpaRating(Integer id) {
+    public MpaRate(Integer id) {
         this.id = id;
     }
 
-    public MpaRating(Integer id, String name) {
+    public MpaRate(Integer id, String name) {
         this.id = id;
         this.name = name;
     }

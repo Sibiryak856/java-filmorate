@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
@@ -34,7 +36,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUser(Long id) {
         return userStorage.getUser(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", id)));
     }
 
     @Override
@@ -49,7 +51,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User update(User user) {
         User updatingUser = userStorage.getUser(user.getId())
-                .orElseThrow(() -> new NotFoundException("Обновляемый пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Updating user not found"));
         validateService.userValidate(user);
         userStorage.update(user);
         return userStorage.getUser(user.getId()).get();
@@ -58,9 +60,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getCommonFriends(Long id, Long otherId) {
         User user = userStorage.getUser(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", id)));
         User otherUser = userStorage.getUser(otherId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", otherId)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", otherId)));
 
         return userStorage.getCommonFriends(id, otherId);
     }
@@ -68,16 +70,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUserFriends(Long id) {
         User user = userStorage.getUser(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", id)));
         return userStorage.getFriends(id);
     }
 
     @Override
     public void updateFriendship(Long id, Long otherId, RequestMethod method) {
         User user = userStorage.getUser(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", id)));
         User otherUser = userStorage.getUser(otherId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", otherId)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", otherId)));
 
         if (method == DELETE) {
             userStorage.removeFriend(id, otherId);

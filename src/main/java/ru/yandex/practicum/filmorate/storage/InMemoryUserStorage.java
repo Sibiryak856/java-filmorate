@@ -12,7 +12,6 @@ public class InMemoryUserStorage implements UserStorage {
     private Long userId = 0L;
     private final Map<Long, User> users = new HashMap<>();
     private final Map<Long, Set<Long>> userFriends = new HashMap<>();
-    //private final Map<Integer, Friendship> friendsMutuality = new HashMap<>();
 
     @Override
     public List<User> getAll() {

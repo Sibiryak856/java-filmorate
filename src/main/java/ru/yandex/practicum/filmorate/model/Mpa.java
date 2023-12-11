@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 @AllArgsConstructor
 @Getter
 public enum Mpa {
@@ -15,34 +17,16 @@ public enum Mpa {
     private int id;
     private String name;
 
-    public static Mpa parse(Integer id) {
-        if (id != null) {
-            for (Mpa mpa : Mpa.values()) {
-                if (mpa.getId() == id) {
-                    return mpa;
-                }
+    public static String parseMpaId(Integer id) {
+        for (Mpa mpa : Mpa.values()) {
+            if (mpa.getId() == id) {
+                return mpa.name;
             }
         }
         return null;
     }
 
     public static boolean checkMpaID(Integer id) {
-        if (id != null) {
-            for (Mpa mpa : Mpa.values()) {
-                if (id == mpa.id) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-
-    @Override
-    public String toString() {
-        return "Mpa{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
+        return Arrays.stream(Mpa.values()).anyMatch(mpa -> id == mpa.id);
     }
 }

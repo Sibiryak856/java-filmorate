@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.dao;
+package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -7,8 +7,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.MpaRate;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
@@ -68,8 +67,10 @@ public class FilmBdStorage implements FilmStorage {
             return stmt;
         }, keyHolder);
         film.setId(keyHolder.getKey().intValue());
-        MpaRating mpa = new MpaRating(film.getMpa().getId(), Mpa.parse(film.getMpa().getId()).getName());
-        film.setMpa(mpa);
+
+        if (!film.getGenres().isEmpty()) {
+            updateGenre(film.getId(), film.getGenres());
+        }
         return film;
     }
 
@@ -103,20 +104,20 @@ public class FilmBdStorage implements FilmStorage {
         String sqlQuery = "update FILM_LIKES set " +
                 "USER_ID = ? " +
                 "where FILM_ID = ?";
-        jdbcTemplate.update(sqlQuery, userId, filmId); // return???
+        jdbcTemplate.update(sqlQuery, userId, filmId);
     }
 
     @Override
     public void removeLike(Integer filmId, Long userId) {
         String sqlQuery = "delete from FILM_LIKES " +
                 "where FILM_ID = ? and USER_ID = ?";
-        jdbcTemplate.update(sqlQuery, filmId, userId); // return???
+        jdbcTemplate.update(sqlQuery, filmId, userId);
     }
 
     @Override
     public List<Film> getTopFilms(Integer count) {
-        String sqlQuery = "select f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, " +
-                "m.MPA_NAME, g.FILM_GENRES, " +
+        String sqlQuery = "select f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                "f.MPA_ID, m.MPA_NAME, g.FILM_GENRES, " +
                 "from FILM_LIKES as fl " +
                 "LEFT JOIN FILMS as f ON fl.FILM_ID = f.FILM_ID " +
                 "LEFT JOIN (SELECT FILM_ID, string_agg(GENRE_ID, ',') AS FILM_GENRES " +
@@ -133,11 +134,7 @@ public class FilmBdStorage implements FilmStorage {
     }
 
     private Film mapRowToFilms(ResultSet rs, int rowNum) throws SQLException {
-        /*if (!Mpa.checkMpaID(rs.getInt("MPA_ID"))) {
-            throw new NotFoundException("Жанр не найден")
-        }*/
         List<Genre> filmGenres = new ArrayList<>();
-        // проверка на соответствие enum в service => create
         if (rs.getString("FILM_GENRES") != null) {
             filmGenres = Arrays.asList(rs.getString("FILM_GENRES").split(","))
                     .stream()
@@ -152,7 +149,7 @@ public class FilmBdStorage implements FilmStorage {
                 .description(rs.getString("DESCRIPTION"))
                 .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
                 .duration(rs.getInt("DURATION"))
-                .mpa(new MpaRating(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
+                .mpa(new MpaRate(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
                 .genres(filmGenres)
                 .build();
     }

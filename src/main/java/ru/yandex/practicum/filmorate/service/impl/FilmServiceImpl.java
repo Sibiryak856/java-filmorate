@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.ValidateService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -39,36 +41,30 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film getFilm(Integer id) {
         return filmStorage.getFilm(id)
-                .orElseThrow(() -> new NotFoundException(String.format("Фильм id=%d не найден", id)));
+                .orElseThrow(() -> new NotFoundException(String.format("Film id=%d not found", id)));
     }
 
     @Override
     public Film createFilm(Film film) {
         validateService.filmValidate(film);
-        if (film.getGenres() == null) {
-            film.setGenres(new ArrayList<>());
-        }
-        return filmStorage.create(film);
+        return filmStorage.create(setFilmParams(film));
     }
 
     @Override
     public Film update(Film film) {
         Film updatingFilm = filmStorage.getFilm(film.getId())
-                .orElseThrow(() -> new NotFoundException(("Обновляемый фильм не найден")));
+                .orElseThrow(() -> new NotFoundException(("Updating film not found")));
         validateService.filmValidate(film);
-        if (film.getGenres() == null) {
-            film.setGenres(new ArrayList<>());
-        }
-        filmStorage.update(film);
+        filmStorage.update(setFilmParams(film));
         return filmStorage.getFilm(film.getId()).get();
     }
 
     @Override
     public void updateLike(Long userId, Integer filmId, RequestMethod method) {
         Film updatingFilm = filmStorage.getFilm(filmId)
-                .orElseThrow(() -> new NotFoundException(String.format("Фильм id=%d не найден", filmId)));
+                .orElseThrow(() -> new NotFoundException(String.format("Film id=%d not found", filmId)));
         User updatingUser = userStorage.getUser(userId)
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь id=%d не найден", userId)));
+                .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", userId)));
 
         if (method == DELETE) {
             filmStorage.removeLike(filmId, userId);
@@ -80,5 +76,16 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public List<Film> getTopFilms(Integer count) {
         return filmStorage.getTopFilms(count);
+    }
+
+    private Film setFilmParams(Film film) {
+        Film newFilm = film;
+        if (newFilm.getGenres() == null) {
+            newFilm.setGenres(new ArrayList<>());
+        }
+        MpaRate mpa = newFilm.getMpa();
+        mpa.setName(Mpa.parseMpaId(mpa.getId()));
+        newFilm.setMpa(mpa);
+        return newFilm;
     }
 }

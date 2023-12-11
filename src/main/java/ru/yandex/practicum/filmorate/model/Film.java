@@ -21,17 +21,7 @@ public class Film {
     private LocalDate releaseDate;
     @Min(1)
     private Integer duration;
-    private MpaRating mpa;
+    private MpaRate mpa;
     private List<Genre> genres;
 
-    /*public Map<String, Object> toMap() {
-        Map<String, Object> values = new HashMap<>();
-        values.put("FILM_NAME", name);
-        values.put("DESCRIPTION", description);
-        values.put("RELEASE_DATE", releaseDate);
-        values.put("DURATION", duration);
-        values.put("MPA_ID", mpa.getId());
-        values.put("FILM_GENRES", filmGenresId);
-        return values;
-    }*/
 }
