@@ -20,7 +20,8 @@ public class UserServiceImpl implements UserService {
     private final ValidateService validateService;
 
     @Autowired
-    public UserServiceImpl(@Qualifier("userDb") UserStorage userStorage, ValidateService validateService) {
+    public UserServiceImpl(@Qualifier("userDbStorage") UserStorage userStorage,
+                           ValidateService validateService) {
         this.userStorage = userStorage;
         this.validateService = validateService;
     }

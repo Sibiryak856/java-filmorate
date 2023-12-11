@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum MPA {
+public enum Mpa {
     G(1, "G"),
     PG(2, "PG"),
     PG_13(3, "PG-13"),
@@ -13,12 +13,12 @@ public enum MPA {
     NC_17(5, "NC-17");
 
     private int id;
-    private String value;
+    private String name;
 
-    public static MPA parse(String value) {
-        if (value != null) {
-            for (MPA mpa : MPA.values()) {
-                if (value.equalsIgnoreCase(mpa.value)) {
+    public static Mpa parse(Integer id) {
+        if (id != null) {
+            for (Mpa mpa : Mpa.values()) {
+                if (mpa.getId() == id) {
                     return mpa;
                 }
             }
@@ -28,12 +28,21 @@ public enum MPA {
 
     public static boolean checkMpaID(Integer id) {
         if (id != null) {
-            for (MPA mpa : MPA.values()) {
+            for (Mpa mpa : Mpa.values()) {
                 if (id == mpa.id) {
                     return true;
                 }
             }
         }
         return false;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Mpa{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

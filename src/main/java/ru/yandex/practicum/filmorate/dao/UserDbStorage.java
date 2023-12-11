@@ -3,22 +3,16 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.MPA;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.model.UserFriend;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-import static ru.yandex.practicum.filmorate.model.FriendshipStatus.APPROVED;
-
-@Component("userDb")
-//@Repository("userDb")
+@Component("userDbStorage")
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
@@ -28,7 +22,7 @@ public class UserDbStorage implements UserStorage {
     public List<User> getAll() {
         return jdbcTemplate.query(
                 "select * from USERS",
-                (rs, rowNum) -> makeUser(rs));
+                this::mapRowToUsers);
     }
 
     @Override
@@ -36,7 +30,7 @@ public class UserDbStorage implements UserStorage {
         return Optional.ofNullable(
                 jdbcTemplate.queryForObject(
                 "select * from USERS where USER_ID = ?",
-                (rs, rowNum) -> makeUser(rs),
+                this::mapRowToUsers,
                 id));
     }
 
@@ -47,21 +41,6 @@ public class UserDbStorage implements UserStorage {
                 .usingGeneratedKeyColumns("USER_ID");
         user.setId(simpleJdbcInsert.executeAndReturnKey(user.toMap()).longValue());
         return user;
-       /*
-        String sqlQuery = "insert into USERS(EMAIL, LOGIN, USER_NAME, BIRTHDAY) " +
-                "values (?, ?, ?, ?)";
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-
-        jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"USER_ID"});
-            stmt.setString(1, user.getEmail());
-            stmt.setString(2, user.getLogin());
-            stmt.setString(3, user.getName());
-            stmt.setDate(4, Date.valueOf(user.getBirthday()));
-            return stmt;
-        }, keyHolder);
-        return keyHolder.getKey().longValue();*/
     }
 
     @Override
@@ -79,7 +58,14 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getCommonFriends(Long id, Long otherId) {
-        return null;
+        String sql = "select * from USERS as u " +
+                "where u.USER_ID in " +
+                "(select c.FRIEND_ID from " +
+                "(select uf.FRIEND_ID, count(uf.FRIEND_ID) " +
+                "from USER_FRIENDS as uf " +
+                "where uf.USER_ID in (?, ?) " +
+                "having count(uf.FRIENDS_ID) > 1) as c)";
+        return jdbcTemplate.query(sql, this::mapRowToUsers, id, otherId);
     }
 
     @Override
@@ -88,7 +74,7 @@ public class UserDbStorage implements UserStorage {
                 "join USER_FRIENDS as uf on u.USER_ID = uf.USER_ID " +
                 "group by uf.USER_ID " +
                 "where uf.USER_ID = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), id);
+        return jdbcTemplate.query(sql, this::mapRowToUsers, id);
     }
 
     @Override
@@ -108,7 +94,7 @@ public class UserDbStorage implements UserStorage {
             jdbcTemplate.update(sqlQuery,
                     id,
                     otherId,
-                    APPROVED.getValue());*/
+                    APPROVED.getName());*/
     }
 
     @Override
@@ -116,7 +102,7 @@ public class UserDbStorage implements UserStorage {
 
     }
 
-    private User makeUser(ResultSet rs) throws SQLException {
+    private User mapRowToUsers(ResultSet rs, int rowNum) throws SQLException {
         return User.builder()
                 .id(rs.getLong("USER_ID"))
                 .email(rs.getString("EMAIL"))

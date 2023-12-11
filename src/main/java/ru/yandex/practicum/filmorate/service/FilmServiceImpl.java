@@ -5,11 +5,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -23,7 +23,9 @@ public class FilmServiceImpl implements FilmService {
     private final ValidateService validateService;
 
     @Autowired
-    public FilmServiceImpl(@Qualifier("filmDb") FilmStorage filmStorage, ValidateService validateService, @Qualifier("userDb") UserStorage userStorage) {
+    public FilmServiceImpl(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                           ValidateService validateService,
+                           @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.validateService = validateService;
         this.userStorage = userStorage;
@@ -43,6 +45,9 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film createFilm(Film film) {
         validateService.filmValidate(film);
+        if (film.getGenres() == null) {
+            film.setGenres(new ArrayList<>());
+        }
         return filmStorage.create(film);
     }
 
@@ -51,6 +56,9 @@ public class FilmServiceImpl implements FilmService {
         Film updatingFilm = filmStorage.getFilm(film.getId())
                 .orElseThrow(() -> new NotFoundException(("Обновляемый фильм не найден")));
         validateService.filmValidate(film);
+        if (film.getGenres() == null) {
+            film.setGenres(new ArrayList<>());
+        }
         filmStorage.update(film);
         return filmStorage.getFilm(film.getId()).get();
     }
