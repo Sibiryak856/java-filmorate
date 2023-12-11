@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
 import java.sql.ResultSet;
@@ -11,28 +11,28 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-@Component("mpaRateDao")
+@Component("genreDao")
 @RequiredArgsConstructor
-public class MpaRateDaoImpl implements MpaRateDao {
+public class GenreDaoImpl implements GenreDao {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<MpaRating> getAll() {
+    public List<Genre> getAll() {
         return jdbcTemplate.query("select * " +
-                        "from MPA",
-                this::mapRowToMpaRating);
+                        "from GENRES",
+                this::mapRowToGenre);
     }
 
     @Override
-    public Optional<MpaRating> getMpaRate(Integer id) {
+    public Optional<Genre> getGenre(Integer id) {
         return Optional.ofNullable(jdbcTemplate.queryForObject(
-                "select * from MPA where MPA_ID = ?",
-                this::mapRowToMpaRating,
+                "select * from GENRE where GENRE_ID = ?",
+                this::mapRowToGenre,
                 id));
     }
 
-    private MpaRating mapRowToMpaRating(ResultSet resultSet, int i) throws SQLException {
-        return new MpaRating(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
+    private Genre mapRowToGenre(ResultSet resultSet, int i) throws SQLException {
+        return new Genre(resultSet.getInt("GENRE_ID"), resultSet.getString("GENRE_NAME"));
     }
 }

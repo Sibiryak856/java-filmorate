@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface MpaRateDao {
 
-    List<Mpa> getAll();
+    List<MpaRating> getAll();
 
     Optional<MpaRating> getMpaRate(Integer id);
 }
