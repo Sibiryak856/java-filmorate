@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.dao.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-@Component("userDbStorage")
+@Repository("userDbStorage")
 @RequiredArgsConstructor
 public class UserDbStorage implements UserStorage {
 
@@ -59,20 +59,18 @@ public class UserDbStorage implements UserStorage {
     public List<User> getCommonFriends(Long id, Long otherId) {
         String sql = "select * from USERS as u " +
                 "where u.USER_ID in " +
-                "(select c.FRIEND_ID from " +
-                "(select uf.FRIEND_ID, count(uf.FRIEND_ID) " +
-                "from USER_FRIENDS as uf " +
-                "where uf.USER_ID in (?, ?) " +
-                "having count(uf.FRIENDS_ID) > 1) as c)";
+                "(select FRIEND_ID " +
+                "from USER_FRIENDS " +
+                "where USER_ID in (?, ?) " +
+                "group by FRIEND_ID " +
+                "having count(FRIENDS_ID) > 1)";
         return jdbcTemplate.query(sql, this::mapRowToUsers, id, otherId);
     }
 
     @Override
     public List<User> getFriends(Long id) {
-        String sql = "select USER_ID, EMAIL, LOGIN, USER_NAME, BIRTHDAY from USERS as u " +
-                "join USER_FRIENDS as uf on u.USER_ID = uf.USER_ID " +
-                "group by uf.USER_ID " +
-                "where uf.USER_ID = ?";
+        String sql = "SELECT * FROM USERS WHERE USER_ID IN " +
+                "(SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID = ?)";
         return jdbcTemplate.query(sql, this::mapRowToUsers, id);
     }
 

@@ -64,7 +64,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleSQLException(final SQLException e) {
-        String errorMsg = "Error reading from database";
+        String errorMsg = "Unexpected database error";
         log.error(errorMsg, e);
         return new ErrorResponse(errorMsg);
     }
