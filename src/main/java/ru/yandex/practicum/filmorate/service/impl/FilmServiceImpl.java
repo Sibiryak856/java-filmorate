@@ -80,10 +80,10 @@ public class FilmServiceImpl implements FilmService {
 
     private Film setFilmParams(Film film) {
         Film newFilm = film;
-        if (newFilm.getGenres() == null) {
+        if (film.getGenres() == null) {
             newFilm.setGenres(new ArrayList<>());
         }
-        MpaRate mpa = newFilm.getMpa();
+        MpaRate mpa = film.getMpa();
         mpa.setName(Mpa.parseMpaId(mpa.getId()));
         newFilm.setMpa(mpa);
         return newFilm;

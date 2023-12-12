@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.MpaRateDao;
@@ -26,13 +27,21 @@ public class MpaRateDaoImpl implements MpaRateDao {
 
     @Override
     public Optional<MpaRate> getMpa(Integer id) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(
-                "select * from MPA where MPA_ID = ?",
-                this::mapRowToMpaRating,
-                id));
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    "select * from MPA where MPA_ID = ?",
+                    this::mapRowToMpaRating,
+                    id));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     private MpaRate mapRowToMpaRating(ResultSet resultSet, int i) throws SQLException {
-        return new MpaRate(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
+        try {
+            return new MpaRate(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }

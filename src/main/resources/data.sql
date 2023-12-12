@@ -1,5 +1,5 @@
 MERGE INTO PUBLIC.MPA  (MPA_ID, MPA_NAME) 
-VALUES(1, 'G'), 
+VALUES (1, 'G'), 
 (2, 'PG'), 
 (3, 'PG-13'), 
 (4, 'R'), 

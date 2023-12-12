@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -40,18 +41,22 @@ public class FilmBdStorage implements FilmStorage {
 
     @Override
     public Optional<Film> getFilm(Integer id) {
-        return Optional.ofNullable(jdbcTemplate.queryForObject(
-                "select f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
-                        "f.MPA_ID, m.MPA_NAME, g.FILM_GENRES " +
-                        "from FILMS as f " +
-                        "LEFT JOIN (SELECT FILM_ID, string_agg(GENRE_ID, ',') AS FILM_GENRES " +
-                        "FROM FILM_GENRES " +
-                        "GROUP BY FILM_ID) AS g " +
-                        "ON g.FILM_ID = f.FILM_ID " +
-                        "LEFT JOIN (SELECT * FROM MPA) as m ON f.MPA_ID = m.MPA_ID " +
-                        "where f.FILM_ID = ?",
-                this::mapRowToFilms,
-                id));
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(
+                    "select f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, " +
+                            "f.MPA_ID, m.MPA_NAME, g.FILM_GENRES " +
+                            "from FILMS as f " +
+                            "LEFT JOIN (SELECT FILM_ID, string_agg(GENRE_ID, ',') AS FILM_GENRES " +
+                            "FROM FILM_GENRES " +
+                            "GROUP BY FILM_ID) AS g " +
+                            "ON g.FILM_ID = f.FILM_ID " +
+                            "LEFT JOIN (SELECT * FROM MPA) as m ON f.MPA_ID = m.MPA_ID " +
+                            "where f.FILM_ID = ?",
+                    this::mapRowToFilms,
+                    id));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
@@ -59,7 +64,8 @@ public class FilmBdStorage implements FilmStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("FILMS")
                 .usingGeneratedKeyColumns("FILM_ID");
-        film.setId(simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue());
+        int id = simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue();
+        film.setId(id);
         if (!film.getGenres().isEmpty()) {
             updateGenres(film.getId(), film.getGenres());
         }
@@ -85,7 +91,8 @@ public class FilmBdStorage implements FilmStorage {
     }
 
     private void updateGenres(Integer filmId, List<Genre> filmGenres) {
-        String sqlQuery = "MERGE INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (?, ?)";
+        String sqlQuery = "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) " +
+                "VALUES (?, ?) ON CONFLICT DO NOTHING";
         jdbcTemplate.batchUpdate(sqlQuery,
                 new BatchPreparedStatementSetter() {
                     @Override
@@ -137,22 +144,39 @@ public class FilmBdStorage implements FilmStorage {
     }
 
     private Film mapRowToFilms(ResultSet rs, int rowNum) throws SQLException {
-        List<Genre> filmGenres = new ArrayList<>();
+        /*List<Genre> filmGenres = new ArrayList<>();
         if (rs.getString("FILM_GENRES") != null) {
-            filmGenres = Arrays.stream(rs.getString("FILM_GENRES").split(","))
+            filmGenres = Arrays.asList(rs.getString("FILM_GENRES").split(","))
+                    .stream()
                     .map(Integer::parseInt)
                     .map(Genre::new)
                     .collect(Collectors.toList());
         }
+        MpaRate mpaRate = new MpaRate(rs.getInt("MPA_ID"), rs.getString("MPA_NAME"));*/
+        try {
+            return Film.builder()
+                    .id(rs.getInt("FILM_ID"))
+                    .name(rs.getString("FILM_NAME"))
+                    .description(rs.getString("DESCRIPTION"))
+                    .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
+                    .duration(rs.getInt("DURATION"))
+                    .mpa(new MpaRate(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
+                    .genres(getFilmGenres(rs.getString("FILM_GENRES")))
+                    .build();
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
 
-        return Film.builder()
-                .id(rs.getInt("FILM_ID"))
-                .name(rs.getString("FILM_NAME"))
-                .description(rs.getString("DESCRIPTION"))
-                .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
-                .duration(rs.getInt("DURATION"))
-                .mpa(new MpaRate(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
-                .genres(filmGenres)
-                .build();
+    private List<Genre> getFilmGenres(String filmGenres) {
+        if (filmGenres == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.asList(filmGenres.split(","))
+                .stream()
+                .map(Integer::parseInt)
+                .map(Genre::new)
+                .collect(Collectors.toList());
     }
 }
