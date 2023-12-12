@@ -76,27 +76,16 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void addFriend(Long id, Long otherId) {
-/*
-
-        UserFriend userFriend = UserFriend.builder().
-                userId(id).
-                friendId(otherId).
-                build();
-        UserFriend addedUserFriend = UserFriend.builder().
-                userId(otherId).
-                friendId(id).
-                build();
-            String sqlQuery = "insert into USER_FRIENDS(USER_ID, FRIEND_ID, FRIEND_STATUS) " +
-                    "values (?, ?, ?)";
-            jdbcTemplate.update(sqlQuery,
-                    id,
-                    otherId,
-                    APPROVED.getName());*/
+        String sqlQuery = "MERGE INTO USER_FRIENDS (USER_ID, FRIEND_ID) " +
+                "VALUES (?, ?)";
+        jdbcTemplate.update(sqlQuery, id, otherId);
     }
 
     @Override
     public void removeFriend(Long id, Long otherId) {
-
+        String sqlQuery = "DELETE FROM USER_FRIENDS " +
+                "WHERE USER_ID = ? AND FRIEND_ID =?";
+        jdbcTemplate.update(sqlQuery, id, otherId);
     }
 
     private User mapRowToUsers(ResultSet rs, int rowNum) throws SQLException {

@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -54,22 +56,12 @@ public class FilmBdStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        String sqlQuery = "insert into FILMS(FILM_NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID) " +
-                "values (?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
-            stmt.setString(1, film.getName());
-            stmt.setString(2, film.getDescription());
-            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
-            stmt.setInt(4, film.getDuration());
-            stmt.setInt(5, film.getMpa().getId());
-            return stmt;
-        }, keyHolder);
-        film.setId(keyHolder.getKey().intValue());
-
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("FILMS")
+                .usingGeneratedKeyColumns("FILM_ID");
+        film.setId(simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue());
         if (!film.getGenres().isEmpty()) {
-            updateGenre(film.getId(), film.getGenres());
+            updateGenres(film.getId(), film.getGenres());
         }
         return film;
     }
@@ -88,15 +80,26 @@ public class FilmBdStorage implements FilmStorage {
                 film.getId());
         List<Genre> filmGenres = film.getGenres();
         if (!filmGenres.isEmpty()) {
-            updateGenre(film.getId(), filmGenres);
+            updateGenres(film.getId(), filmGenres);
         }
     }
 
-    private void updateGenre(Integer filmId, List<Genre> filmGenres) {
-        String sqlQuery = "update FILM_GENRES set " +
-                "GENRE_ID = ? " +
-                "where FILM_ID = ?";
-        filmGenres.forEach(genre -> jdbcTemplate.update(sqlQuery, genre.getId(), filmId));
+    private void updateGenres(Integer filmId, List<Genre> filmGenres) {
+        String sqlQuery = "MERGE INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (?, ?)";
+        jdbcTemplate.batchUpdate(sqlQuery,
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        Genre genre = filmGenres.get(0);
+                        ps.setInt(1, filmId);
+                        ps.setInt(2, genre.getId());
+                    }
+
+                    @Override
+                    public int getBatchSize() {
+                        return filmGenres.size();
+                    }
+                });
     }
 
     @Override
@@ -136,8 +139,7 @@ public class FilmBdStorage implements FilmStorage {
     private Film mapRowToFilms(ResultSet rs, int rowNum) throws SQLException {
         List<Genre> filmGenres = new ArrayList<>();
         if (rs.getString("FILM_GENRES") != null) {
-            filmGenres = Arrays.asList(rs.getString("FILM_GENRES").split(","))
-                    .stream()
+            filmGenres = Arrays.stream(rs.getString("FILM_GENRES").split(","))
                     .map(Integer::parseInt)
                     .map(Genre::new)
                     .collect(Collectors.toList());
