@@ -45,4 +45,5 @@ public class GenreDaoImpl implements GenreDao {
         return new Genre(resultSet.getInt("GENRE_ID"),
                 resultSet.getString("GENRE_NAME"));
     }
+
 }

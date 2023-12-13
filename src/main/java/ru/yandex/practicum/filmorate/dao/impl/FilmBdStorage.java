@@ -37,7 +37,8 @@ public class FilmBdStorage implements FilmStorage {
                         "FROM FILM_GENRES fg \n" +
                         "LEFT JOIN GENRE_CONCAT as gc\n" +
                         "ON fg.GENRE_ID = gc.GENRE_ID\n" +
-                        "GROUP BY fg.FILM_ID)\n" +
+                        "GROUP BY fg.FILM_ID\n" +
+                        ")\n" +
                         "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES \n" +
                         "FROM FILMS AS f \n" +
                         "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
@@ -47,7 +48,7 @@ public class FilmBdStorage implements FilmStorage {
 
     @Override
     public Optional<Film> getFilm(Integer id) {
-        Film film = null;
+        Film film;
         try {
             film = jdbcTemplate.queryForObject(
                     "WITH " +
@@ -60,32 +61,17 @@ public class FilmBdStorage implements FilmStorage {
                             "FROM FILM_GENRES fg \n" +
                             "LEFT JOIN GENRE_CONCAT as gc\n" +
                             "ON fg.GENRE_ID = gc.GENRE_ID\n" +
-                            "GROUP BY fg.FILM_ID)\n" +
+                            "GROUP BY fg.FILM_ID\n" +
+                            ")\n" +
                             "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES \n" +
                             "FROM FILMS AS f \n" +
                             "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
                             "LEFT JOIN MPA AS m ON f.MPA_ID = m.MPA_ID\n" +
                             "WHERE f.FILM_ID = ?",
-                    /*"SELECT " +
-                            "f.FILM_ID, " +
-                            "f.FILM_NAME, " +
-                            "f.DESCRIPTION, " +
-                            "f.RELEASE_DATE, " +
-                            "f.DURATION, " +
-                            "f.MPA_ID, " +
-                            "m.MPA_NAME, " +
-                            "g.FILM_GENRES " +
-                            "FROM FILMS AS f " +
-                            "LEFT JOIN (SELECT FILM_ID, string_agg(string_agg(GENRE_ID, ',') AS FILM_GENRES\n" +
-                                "FROM FILM_GENRES\n" +
-                                "GROUP BY FILM_ID) AS g\n" +
-                            "ON g.FILM_ID = f.FILM_ID\n" +
-                            "LEFT JOIN MPA AS m ON f.MPA_ID = m.MPA_ID\n" +
-                            "WHERE f.FILM_ID = ?",*/
                     this::mapRowToFilms,
                     id);
         } catch (EmptyResultDataAccessException e) {
-            new NotFoundException(String.format("Film id=%d not found", id));
+            throw new NotFoundException(String.format("Film id=%d not found", id));
         }
         return Optional.ofNullable(film);
     }
@@ -105,10 +91,9 @@ public class FilmBdStorage implements FilmStorage {
 
     @Override
     public void update(Film film) {
-        String sql = "update FILMS set " +
-                "FILM_NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? " +
-                "WHERE FILM_ID = ?";
-        jdbcTemplate.update(sql,
+        jdbcTemplate.update(
+                "update FILMS set FILM_NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ?\n" +
+                        "WHERE FILM_ID = ?",
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
@@ -145,56 +130,43 @@ public class FilmBdStorage implements FilmStorage {
 
     @Override
     public void addLike(Integer filmId, Long userId) {
-        String sqlQuery = "MERGE INTO FILM_LIKES (FILM_ID, USER_ID) " +
-                "VALUES (?, ?)";
+        String sqlQuery = "MERGE INTO FILM_LIKES (FILM_ID, USER_ID) VALUES (?, ?)";
         jdbcTemplate.update(sqlQuery, filmId, userId);
     }
 
     @Override
     public void removeLike(Integer filmId, Long userId) {
-        String sqlQuery = "DELETE " +
-                "FROM FILM_LIKES " +
+        String sqlQuery = "DELETE FROM FILM_LIKES\n" +
                 "WHERE FILM_ID = ? AND USER_ID = ?";
         jdbcTemplate.update(sqlQuery, filmId, userId);
     }
 
     @Override
     public List<Film> getTopFilms(Integer count) {
-        String sqlQuery = "SELECT " +
-                "f.FILM_ID, " +
-                "f.FILM_NAME, " +
-                "f.DESCRIPTION, " +
-                "f.RELEASE_DATE, " +
-                "f.DURATION, " +
-                "f.MPA_ID, " +
-                "m.MPA_NAME, " +
-                "g.FILM_GENRES\n" +
-                "FROM FILM_LIKES as fl\n" +
-                "LEFT JOIN FILMS AS f ON fl.FILM_ID = f.FILM_ID " +
-                "LEFT JOIN (SELECT FILM_ID, string_agg(GENRE_ID, ',') AS FILM_GENRES\n" +
-                    "FROM FILM_GENRES\n" +
-                    "GROUP BY FILM_ID) AS g\n" +
-                "ON g.FILM_ID = fl.FILM_ID\n" +
-                "LEFT JOIN MPA as m\n" +
-                "ON f.MPA_ID = m.MPA_ID\n" +
-                "GROUP BY fl.FILM_ID\n" +
-                "ORDER BY count(fl.USER_ID) DESC\n" +
-                "LIMIT " + count;
         return jdbcTemplate.query(
-                sqlQuery,
+                String.format("WITH GENRE_CONCAT AS (\n" +
+                        "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
+                        "FROM GENRES\n" +
+                        "),\n" +
+                        "FILM_AGG_GENRES AS (\n" +
+                        "SELECT FILM_ID, string_agg(gc.CONC_GENRE, ';') AS FILM_GENRES\n" +
+                        "FROM FILM_GENRES fg \n" +
+                        "LEFT JOIN GENRE_CONCAT as gc\n" +
+                        "ON fg.GENRE_ID = gc.GENRE_ID\n" +
+                        "GROUP BY fg.FILM_ID\n" +
+                        ")\n" +
+                        "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES\n" +
+                        "FROM FILM_LIKES as fl\n" +
+                        "LEFT JOIN FILMS AS f ON fl.FILM_ID = f.FILM_ID \n" +
+                        "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = fl.FILM_ID\n" +
+                        "LEFT JOIN MPA as m ON f.MPA_ID = m.MPA_ID\n" +
+                        "GROUP BY fl.FILM_ID\n" +
+                        "ORDER BY count(fl.USER_ID) DESC\n" +
+                        "LIMIT %d", + count),
                 this::mapRowToFilms);
     }
 
     private Film mapRowToFilms(ResultSet rs, int rowNum) throws SQLException {
-        /*List<Genre> filmGenres = new ArrayList<>();
-        if (rs.getString("FILM_GENRES") != null) {
-            filmGenres = Arrays.asList(rs.getString("FILM_GENRES").split(","))
-                    .stream()
-                    .map(Integer::parseInt)
-                    .map(Genre::new)
-                    .collect(Collectors.toList());
-        }
-        MpaRate mpaRate = new MpaRate(rs.getInt("MPA_ID"), rs.getString("MPA_NAME"));*/
         return Film.builder()
                     .id(rs.getInt("FILM_ID"))
                     .name(rs.getString("FILM_NAME"))
@@ -210,13 +182,6 @@ public class FilmBdStorage implements FilmStorage {
         if (filmGenres == null) {
             return new ArrayList<>();
         }
-        /*List<Genre> list = new ArrayList<>();
-        String[] genres = filmGenres.split(";");
-        for (int i = 0; i < genres.length; i++) {
-            String[] genreParam = genres[i].split(",");
-            Genre genre = new Genre(Integer.parseInt(genreParam[0]), genreParam[1]);
-            list.add(genre);
-        }*/
 
         return Arrays.asList(filmGenres.split(";")).stream()
                 .map(genre -> {
@@ -226,10 +191,6 @@ public class FilmBdStorage implements FilmStorage {
                     return new Genre(id, name);
                 })
                 .collect(Collectors.toList());
-        /*Arrays.asList(filmGenres.split(","))
-                .stream()
-                .map(Integer::parseInt)
-                .map(Genre::new)
-                .collect(Collectors.toList());*/
     }
+
 }

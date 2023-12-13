@@ -40,7 +40,7 @@ public class UserDbStorage implements UserStorage {
         } catch (EmptyResultDataAccessException e) {
             throw new NotFoundException(String.format("User id=%d not found", id));
         }
-        return Optional.of(user);
+        return Optional.ofNullable(user);
     }
 
     @Override
@@ -55,10 +55,10 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void update(User user) {
-        String sqlQuery = "UPDATE USERS\n" +
-                "SET EMAIL = ?, LOGIN = ?, USER_NAME = ?, BIRTHDAY = ?\n" +
-                "WHERE USER_ID = ?";
-        jdbcTemplate.update(sqlQuery,
+        jdbcTemplate.update(
+                "UPDATE USERS\n" +
+                        "SET EMAIL = ?, LOGIN = ?, USER_NAME = ?, BIRTHDAY = ?\n" +
+                        "WHERE USER_ID = ?",
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),

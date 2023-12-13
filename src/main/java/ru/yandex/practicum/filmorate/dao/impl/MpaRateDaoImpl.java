@@ -30,7 +30,9 @@ public class MpaRateDaoImpl implements MpaRateDao {
         MpaRate mpa;
         try {
             mpa = jdbcTemplate.queryForObject(
-                    "SELECT * FROM MPA WHERE MPA_ID = ?",
+                    "SELECT * \n" +
+                            "FROM MPA\n" +
+                            "WHERE MPA_ID = ?",
                     this::mapRowToMpaRating,
                     id);
         } catch (EmptyResultDataAccessException e) {
@@ -43,4 +45,5 @@ public class MpaRateDaoImpl implements MpaRateDao {
         return new MpaRate(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
 
     }
+
 }

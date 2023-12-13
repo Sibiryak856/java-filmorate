@@ -2,11 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class ValidateService {
@@ -18,6 +17,14 @@ public class ValidateService {
             throw new ValidateException("MPA_ID movie not set");
         } else if (!Mpa.checkMpaID(film.getMpa().getId())) {
             throw new ValidateException("Unknown movie MPA_ID");
+        }
+        List<Genre> filmGenres = film.getGenres();
+        if (filmGenres != null && !filmGenres.isEmpty()) {
+            filmGenres.forEach(genre -> {
+                if (!Genres.checkGenreID(genre.getId())) {
+                    throw new ValidateException("Unknown movie GENRE_ID");
+                }
+            });
         }
         if (film.getReleaseDate().isBefore(EARLIEST_RELEASE_DATE)) {
             throw new ValidateException("The film's release date is too old");
