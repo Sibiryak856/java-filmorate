@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class FilmBdStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-    
+
     @Override
     public List<Film> getAll() {
         return jdbcTemplate.query("WITH " +
