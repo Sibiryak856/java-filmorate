@@ -5,6 +5,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -21,20 +22,25 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getAll() {
         return jdbcTemplate.query(
-                "select * from USERS",
+                "SELECT * \n" +
+                        "from USERS",
                 this::mapRowToUsers);
     }
 
     @Override
     public Optional<User> getUser(Long id) {
+        User user;
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "select * from USERS where USER_ID = ?",
+            user = jdbcTemplate.queryForObject(
+                    "SELECT * \n" +
+                            "FROM USERS\n" +
+                            "WHERE USER_ID = ?",
                     this::mapRowToUsers,
-                    id));
+                    id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException(String.format("User id=%d not found", id));
         }
+        return Optional.of(user);
     }
 
     @Override
@@ -49,9 +55,9 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void update(User user) {
-        String sqlQuery = "update USERS set " +
-                "EMAIL = ?, LOGIN = ?, USER_NAME = ?, BIRTHDAY = ? " +
-                "where USER_ID = ?";
+        String sqlQuery = "UPDATE USERS\n" +
+                "SET EMAIL = ?, LOGIN = ?, USER_NAME = ?, BIRTHDAY = ?\n" +
+                "WHERE USER_ID = ?";
         jdbcTemplate.update(sqlQuery,
                 user.getEmail(),
                 user.getLogin(),
@@ -62,48 +68,47 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getCommonFriends(Long id, Long otherId) {
-        String sql = "select * from USERS as u " +
-                "where u.USER_ID in " +
-                "(select FRIEND_ID " +
-                "from USER_FRIENDS " +
-                "where USER_ID in (?, ?) " +
-                "group by FRIEND_ID " +
-                "having count(FRIEND_ID) > 1)";
+        String sql = "SELECT * \n" +
+                "FROM USERS as u\n" +
+                "WHERE u.USER_ID IN (SELECT FRIEND_ID\n" +
+                "FROM USER_FRIENDS\n" +
+                "WHERE USER_ID IN (?, ?)\n" +
+                "GROUP BY FRIEND_ID\n" +
+                "HAVING COUNT (FRIEND_ID) > 1)";
         return jdbcTemplate.query(sql, this::mapRowToUsers, id, otherId);
     }
 
     @Override
     public List<User> getFriends(Long id) {
-        String sql = "SELECT * FROM USERS WHERE USER_ID IN " +
-                "(SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID = ?)";
+        String sql = "SELECT * \n" +
+                "FROM USERS\n" +
+                "WHERE USER_ID IN (SELECT FRIEND_ID\n" +
+                "FROM USER_FRIENDS\n" +
+                "WHERE USER_ID = ?)";
         return jdbcTemplate.query(sql, this::mapRowToUsers, id);
     }
 
     @Override
     public void addFriend(Long id, Long otherId) {
-        String sqlQuery = "INSERT INTO USER_FRIENDS (USER_ID, FRIEND_ID) " +
-                "VALUES (?, ?) ON CONFLICT DO NOTHING"; // не найден праймари кей / неверный синтаксис
-        jdbcTemplate.update(sqlQuery, otherId, id);
+        String sqlQuery = "MERGE INTO USER_FRIENDS (USER_ID, FRIEND_ID) VALUES (?, ?)";
+        jdbcTemplate.update(sqlQuery, id, otherId);
     }
 
     @Override
     public void removeFriend(Long id, Long otherId) {
-        String sqlQuery = "DELETE FROM USER_FRIENDS " +
-                "WHERE USER_ID = ? AND FRIEND_ID =?";
+        String sqlQuery = "DELETE FROM USER_FRIENDS\n" +
+                "WHERE USER_ID = ? AND FRIEND_ID = ?";
         jdbcTemplate.update(sqlQuery, id, otherId);
     }
 
     private User mapRowToUsers(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return User.builder()
+       return User.builder()
                     .id(rs.getLong("USER_ID"))
                     .email(rs.getString("EMAIL"))
                     .login(rs.getString("LOGIN"))
                     .name(rs.getString("USER_NAME"))
                     .birthday(rs.getDate("BIRTHDAY").toLocalDate())
                     .build();
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
     }
+
 }

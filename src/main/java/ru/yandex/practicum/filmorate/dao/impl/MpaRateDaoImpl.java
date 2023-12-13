@@ -5,6 +5,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.MpaRateDao;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaRate;
 
 import java.sql.ResultSet;
@@ -20,28 +21,26 @@ public class MpaRateDaoImpl implements MpaRateDao {
 
     @Override
     public List<MpaRate> getAll() {
-        return jdbcTemplate.query("select * " +
-                        "from MPA",
+        return jdbcTemplate.query("SELECT * FROM MPA",
                 this::mapRowToMpaRating);
     }
 
     @Override
     public Optional<MpaRate> getMpa(Integer id) {
+        MpaRate mpa;
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "select * from MPA where MPA_ID = ?",
+            mpa = jdbcTemplate.queryForObject(
+                    "SELECT * FROM MPA WHERE MPA_ID = ?",
                     this::mapRowToMpaRating,
-                    id));
+                    id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException(String.format("MPA rate id=%d not found", id));
         }
+        return Optional.ofNullable(mpa);
     }
 
     private MpaRate mapRowToMpaRating(ResultSet resultSet, int i) throws SQLException {
-        try {
-            return new MpaRate(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+        return new MpaRate(resultSet.getInt("MPA_ID"), resultSet.getString("MPA_NAME"));
+
     }
 }

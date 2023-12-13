@@ -5,6 +5,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
@@ -20,29 +21,28 @@ public class GenreDaoImpl implements GenreDao {
 
     @Override
     public List<Genre> getAll() {
-        return jdbcTemplate.query("select * " +
-                        "from GENRES",
+        return jdbcTemplate.query("SELECT * FROM GENRES",
                 this::mapRowToGenre);
     }
 
     @Override
     public Optional<Genre> getGenre(Integer id) {
+        Genre genre;
         try {
-            return Optional.ofNullable(jdbcTemplate.queryForObject(
-                    "select * from GENRES where GENRE_ID = ?",
+            genre = jdbcTemplate.queryForObject(
+                    "SELECT * \n" +
+                            "FROM GENRES\n" +
+                            "WHERE GENRE_ID = ?",
                     this::mapRowToGenre,
-                    id));
+                    id);
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            throw new NotFoundException(String.format("Genre id=%d not found", id));
         }
+        return Optional.ofNullable(genre);
     }
 
     private Genre mapRowToGenre(ResultSet resultSet, int i) throws SQLException {
-        try {
-            return new Genre(resultSet.getInt("GENRE_ID"),
-                    resultSet.getString("GENRE_NAME"));
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+        return new Genre(resultSet.getInt("GENRE_ID"),
+                resultSet.getString("GENRE_NAME"));
     }
 }
