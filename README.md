@@ -2,7 +2,7 @@
 ## Repository for Filmorate project.
 
 #### Database diagram
-![diagram](filmorateDiagram.png "filmorate diagram")
+![diagram](dataBaseDiagram.png "filmorate diagram")
 
 #### Description
 Table FILMS linked with FILM_GENRES, FILM_LIKES by FILM_ID; 
