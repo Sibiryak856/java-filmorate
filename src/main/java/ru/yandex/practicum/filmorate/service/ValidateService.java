@@ -15,13 +15,13 @@ public class ValidateService {
     public void filmValidate(Film film) {
         if (film.getMpa() == null) {
             throw new ValidateException("MPA_ID movie not set");
-        } else if (!Mpa.checkMpaID(film.getMpa().getId())) {
+        } else if (!MpaEnum.checkMpaID(film.getMpa().getId())) {
             throw new ValidateException("Unknown movie MPA_ID");
         }
         List<Genre> filmGenres = film.getGenres();
         if (filmGenres != null && !filmGenres.isEmpty()) {
             filmGenres.forEach(genre -> {
-                if (!Genres.checkGenreID(genre.getId())) {
+                if (!GenreEnum.checkGenreID(genre.getId())) {
                     throw new ValidateException("Unknown movie GENRE_ID");
                 }
             });

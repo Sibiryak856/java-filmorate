@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.service.impl.FilmServiceImpl;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @Slf4j

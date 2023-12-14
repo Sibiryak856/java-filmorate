@@ -6,13 +6,15 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.FilmDao;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRate;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,28 +23,30 @@ import java.util.stream.Collectors;
 
 @Repository("filmDbStorage")
 @RequiredArgsConstructor
-public class FilmBdStorage implements FilmStorage {
+public class FilmDbDaoImpl implements FilmDao {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final static String sqlToget = "WITH\n" +
+            "GENRE_CONCAT AS (\n" +
+            "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
+            "FROM GENRES\n" +
+            "),\n" +
+            "FILM_AGG_GENRES AS (\n" +
+            "SELECT FILM_ID, string_agg(gc.CONC_GENRE, ';') AS FILM_GENRES\n" +
+            "FROM FILM_GENRES fg \n" +
+            "LEFT JOIN GENRE_CONCAT as gc\n" +
+            "ON fg.GENRE_ID = gc.GENRE_ID\n" +
+            "GROUP BY fg.FILM_ID\n" +
+            ")\n" +
+            "SELECT f.*, m.MPA_NAME, fg.FILM_GENRES \n" +
+            "FROM FILMS AS f \n" +
+            "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
+            "LEFT JOIN MPA AS m ON f.MPA_ID = m.MPA_ID";
+
     @Override
     public List<Film> getAll() {
-        return jdbcTemplate.query("WITH " +
-                        "GENRE_CONCAT AS (\n" +
-                        "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
-                        "FROM GENRES\n" +
-                        "),\n" +
-                        "FILM_AGG_GENRES AS (\n" +
-                        "SELECT FILM_ID, string_agg(gc.CONC_GENRE, ';') AS FILM_GENRES\n" +
-                        "FROM FILM_GENRES fg \n" +
-                        "LEFT JOIN GENRE_CONCAT as gc\n" +
-                        "ON fg.GENRE_ID = gc.GENRE_ID\n" +
-                        "GROUP BY fg.FILM_ID\n" +
-                        ")\n" +
-                        "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES \n" +
-                        "FROM FILMS AS f \n" +
-                        "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
-                        "LEFT JOIN MPA AS m ON f.MPA_ID = m.MPA_ID",
+        return jdbcTemplate.query(sqlToget,
                 this::mapRowToFilms);
     }
 
@@ -51,23 +55,7 @@ public class FilmBdStorage implements FilmStorage {
         Film film;
         try {
             film = jdbcTemplate.queryForObject(
-                    "WITH " +
-                            "GENRE_CONCAT AS (\n" +
-                            "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
-                            "FROM GENRES\n" +
-                            "),\n" +
-                            "FILM_AGG_GENRES AS (\n" +
-                            "SELECT FILM_ID, string_agg(gc.CONC_GENRE, ';') AS FILM_GENRES\n" +
-                            "FROM FILM_GENRES fg \n" +
-                            "LEFT JOIN GENRE_CONCAT as gc\n" +
-                            "ON fg.GENRE_ID = gc.GENRE_ID\n" +
-                            "GROUP BY fg.FILM_ID\n" +
-                            ")\n" +
-                            "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES \n" +
-                            "FROM FILMS AS f \n" +
-                            "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
-                            "LEFT JOIN MPA AS m ON f.MPA_ID = m.MPA_ID\n" +
-                            "WHERE f.FILM_ID = ?",
+                    sqlToget + "\nWHERE f.FILM_ID = ?",
                     this::mapRowToFilms,
                     id);
         } catch (EmptyResultDataAccessException e) {

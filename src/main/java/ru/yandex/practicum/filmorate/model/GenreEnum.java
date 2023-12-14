@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 @AllArgsConstructor
 @Getter
-public enum Genres {
+public enum GenreEnum {
 
     COMEDY(1, "Комедия"),
     DRAMA(2, "Драма"),
@@ -22,7 +22,7 @@ public enum Genres {
     private String name;
 
     public static String parseGenre(Integer id) {
-        for (Genres genre : Genres.values()) {
+        for (GenreEnum genre : GenreEnum.values()) {
             if (genre.getId() == id) {
                 return genre.name;
             }
@@ -31,6 +31,6 @@ public enum Genres {
     }
 
     public static boolean checkGenreID(Integer id) {
-        return Arrays.stream(Genres.values()).anyMatch(genre -> id == genre.id);
+        return Arrays.stream(GenreEnum.values()).anyMatch(genre -> id == genre.id);
     }
 }

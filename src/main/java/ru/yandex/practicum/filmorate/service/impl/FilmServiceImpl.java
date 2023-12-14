@@ -4,15 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
+import ru.yandex.practicum.filmorate.dao.FilmDao;
+import ru.yandex.practicum.filmorate.dao.UserDao;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MpaEnum;
+import ru.yandex.practicum.filmorate.model.MpaRate;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ValidateService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -21,27 +22,27 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @Service
 public class FilmServiceImpl implements FilmService {
 
-    public FilmStorage filmStorage;
-    private UserStorage userStorage;
+    public FilmDao filmDao;
+    private UserDao userDao;
     private final ValidateService validateService;
 
     @Autowired
-    public FilmServiceImpl(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+    public FilmServiceImpl(@Qualifier("filmDbStorage") FilmDao filmDao,
                            ValidateService validateService,
-                           @Qualifier("userDbStorage") UserStorage userStorage) {
-        this.filmStorage = filmStorage;
+                           @Qualifier("userDbStorage") UserDao userDao) {
+        this.filmDao = filmDao;
         this.validateService = validateService;
-        this.userStorage = userStorage;
+        this.userDao = userDao;
     }
 
     @Override
     public List<Film> getAll() {
-        return filmStorage.getAll();
+        return filmDao.getAll();
     }
 
     @Override
     public Film getFilm(Integer id) {
-        return filmStorage.getFilm(id)
+        return filmDao.getFilm(id)
                 .orElseThrow(() -> new NotFoundException(String.format("Film id=%d not found", id)));
     }
 
@@ -49,40 +50,40 @@ public class FilmServiceImpl implements FilmService {
     public Film createFilm(Film film) {
         validateService.filmValidate(film);
         MpaRate mpa = film.getMpa();
-        mpa.setName(Mpa.parseMpaId(mpa.getId()));
+        mpa.setName(MpaEnum.parseMpaId(mpa.getId()));
         film.setMpa(mpa);
-        return filmStorage.create(film);
+        return filmDao.create(film);
     }
 
     @Override
     public Film update(Film film) {
-        Film updatingFilm = filmStorage.getFilm(film.getId())
+        Film updatingFilm = filmDao.getFilm(film.getId())
                 .orElseThrow(() -> new NotFoundException(("Updating film not found")));
         validateService.filmValidate(film);
         MpaRate mpa = film.getMpa();
-        mpa.setName(Mpa.parseMpaId(mpa.getId()));
+        mpa.setName(MpaEnum.parseMpaId(mpa.getId()));
         film.setMpa(mpa);
-        filmStorage.update(film);
-        return filmStorage.getFilm(film.getId()).get();
+        filmDao.update(film);
+        return filmDao.getFilm(film.getId()).get();
     }
 
     @Override
     public void updateLike(Long userId, Integer filmId, RequestMethod method) {
-        Film updatingFilm = filmStorage.getFilm(filmId)
+        Film updatingFilm = filmDao.getFilm(filmId)
                 .orElseThrow(() -> new NotFoundException(String.format("Film id=%d not found", filmId)));
-        User updatingUser = userStorage.getUser(userId)
+        User updatingUser = userDao.getUser(userId)
                 .orElseThrow(() -> new NotFoundException(String.format("User id=%d not found", userId)));
 
         if (method == DELETE) {
-            filmStorage.removeLike(filmId, userId);
+            filmDao.removeLike(filmId, userId);
         } else if (method == PUT) {
-            filmStorage.addLike(filmId, userId);
+            filmDao.addLike(filmId, userId);
         }
     }
 
     @Override
     public List<Film> getTopFilms(Integer count) {
-        return filmStorage.getTopFilms(count);
+        return filmDao.getTopFilms(count);
     }
 
 }
