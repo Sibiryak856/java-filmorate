@@ -27,7 +27,7 @@ public class FilmDbDaoImpl implements FilmDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final static String sqlToget = "WITH\n" +
+    private final String sqlToget = "WITH\n" +
             "GENRE_CONCAT AS (\n" +
             "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
             "FROM GENRES\n" +
