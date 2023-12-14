@@ -83,7 +83,7 @@ public class FilmBdStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("FILM_ID");
         int id = simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue();
         film.setId(id);
-        if (!film.getGenres().isEmpty()) {
+        if (film.getGenres() != null) {
             updateGenres(film.getId(), film.getGenres());
         }
         return film;
@@ -101,31 +101,33 @@ public class FilmBdStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId());
 
-        updateGenres(film.getId(),  film.getGenres());
+        if (film.getGenres() != null) {
+            clearFilmGenres(film.getId());
+            updateGenres(film.getId(), film.getGenres());
+        }
+    }
+
+    private void clearFilmGenres(Integer id) {
+        jdbcTemplate.update("DELETE FROM FILM_GENRES WHERE FILM_ID = ?", id);
     }
 
     private void updateGenres(Integer filmId, List<Genre> filmGenres) {
-        String sqlQuery = "MERGE INTO FILM_GENRES (FILM_ID, GENRE_ID)\n" +
-                "VALUES (?, ?)";
-        if (filmGenres == null || filmGenres.isEmpty()) {
-            sqlQuery = "DELETE " +
-                    "FROM FILM_GENRES " +
-                    "WHERE FILM_ID = ? AND GENRE_ID = ?";
-        }
-        jdbcTemplate.batchUpdate(sqlQuery,
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        Genre genre = filmGenres.get(i);
-                        ps.setInt(1, filmId);
-                        ps.setInt(2, genre.getId());
-                    }
+        if (!filmGenres.isEmpty()) {
+            jdbcTemplate.batchUpdate("MERGE INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (?, ?)",
+                    new BatchPreparedStatementSetter() {
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            Genre genre = filmGenres.get(i);
+                            ps.setInt(1, filmId);
+                            ps.setInt(2, genre.getId());
+                        }
 
-                    @Override
-                    public int getBatchSize() {
-                        return filmGenres.size();
-                    }
-                });
+                        @Override
+                        public int getBatchSize() {
+                            return filmGenres.size();
+                        }
+                    });
+        }
     }
 
     @Override
@@ -154,14 +156,19 @@ public class FilmBdStorage implements FilmStorage {
                         "LEFT JOIN GENRE_CONCAT as gc\n" +
                         "ON fg.GENRE_ID = gc.GENRE_ID\n" +
                         "GROUP BY fg.FILM_ID\n" +
-                        ")\n" +
-                        "SELECT f.FILM_ID, f.FILM_NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES\n" +
-                        "FROM FILM_LIKES as fl\n" +
-                        "LEFT JOIN FILMS AS f ON fl.FILM_ID = f.FILM_ID \n" +
-                        "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = fl.FILM_ID\n" +
-                        "LEFT JOIN MPA as m ON f.MPA_ID = m.MPA_ID\n" +
+                        "),\n" +
+                        "FILM_LIKES_COUNT AS (\n" +
+                        "SELECT fl.FILM_ID, count(fl.USER_ID) AS QTY_LIKES\n" +
+                        "FROM FILM_LIKES fl\n" +
                         "GROUP BY fl.FILM_ID\n" +
-                        "ORDER BY count(fl.USER_ID) DESC\n" +
+                        ")\n" +
+                        "SELECT f.*, f.MPA_ID, m.MPA_NAME, fg.FILM_GENRES, flc.QTY_LIKES\n" +
+                        "FROM FILMS AS f\n" +
+                        "LEFT JOIN FILM_AGG_GENRES fg ON fg.FILM_ID = f.FILM_ID\n" +
+                        "LEFT JOIN MPA as m ON f.MPA_ID = m.MPA_ID\n" +
+                        "LEFT JOIN FILM_LIKES_COUNT AS flc ON flc.FILM_ID = f.FILM_ID\n" +
+                        "GROUP BY f.FILM_ID\n" +
+                        "ORDER BY flc.QTY_LIKES DESC\n" +
                         "LIMIT %d", + count),
                 this::mapRowToFilms);
     }

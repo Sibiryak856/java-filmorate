@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -47,7 +48,10 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film createFilm(Film film) {
         validateService.filmValidate(film);
-        return filmStorage.create(setFilmParams(film));
+        MpaRate mpa = film.getMpa();
+        mpa.setName(Mpa.parseMpaId(mpa.getId()));
+        film.setMpa(mpa);
+        return filmStorage.create(film);
     }
 
     @Override
@@ -55,7 +59,10 @@ public class FilmServiceImpl implements FilmService {
         Film updatingFilm = filmStorage.getFilm(film.getId())
                 .orElseThrow(() -> new NotFoundException(("Updating film not found")));
         validateService.filmValidate(film);
-        filmStorage.update(setFilmParams(film));
+        MpaRate mpa = film.getMpa();
+        mpa.setName(Mpa.parseMpaId(mpa.getId()));
+        film.setMpa(mpa);
+        filmStorage.update(film);
         return filmStorage.getFilm(film.getId()).get();
     }
 
@@ -78,14 +85,4 @@ public class FilmServiceImpl implements FilmService {
         return filmStorage.getTopFilms(count);
     }
 
-    private Film setFilmParams(Film film) {
-        Film newFilm = film;
-        if (film.getGenres() == null) {
-            newFilm.setGenres(new ArrayList<>());
-        }
-        MpaRate mpa = film.getMpa();
-        mpa.setName(Mpa.parseMpaId(mpa.getId()));
-        newFilm.setMpa(mpa);
-        return newFilm;
-    }
 }
