@@ -6,31 +6,34 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import ru.yandex.practicum.filmorate.dao.impl.GenreDaoImpl;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import ru.yandex.practicum.filmorate.dao.impl.JdbcGenreDao;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.GenreEnum;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @JdbcTest
-public class TestGenreDaoImpl {
+public class TestJdbcGenreDao {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private GenreDaoImpl genreDao;
+    private JdbcGenreDao genreDao;
     private List<Genre> genres;
 
     @BeforeEach
     public void setUp() {
-        genreDao = new GenreDaoImpl(jdbcTemplate);
-        genres = Arrays.asList(GenreEnum.values()).stream()
-                .map(genre -> (new Genre(genre.getId(), genre.getName())))
-                .collect(Collectors.toList());
+        genreDao = new JdbcGenreDao(jdbcTemplate);
+        genres = Arrays.asList(
+                new Genre(1, "Комедия"),
+                new Genre(2, "Драма"),
+                new Genre(3, "Мультфильм"),
+                new Genre(4, "Триллер"),
+                new Genre(5, "Документальный"),
+                new Genre(6, "Боевик")
+        );
     }
 
     @Test

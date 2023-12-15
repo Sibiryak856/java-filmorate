@@ -2,27 +2,30 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidateException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ValidateService {
 
     private static final LocalDate EARLIEST_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
-    public void filmValidate(Film film) {
-        if (film.getMpa() == null) {
-            throw new ValidateException("MPA_ID movie not set");
-        } else if (!MpaEnum.checkMpaID(film.getMpa().getId())) {
-            throw new ValidateException("Unknown movie MPA_ID");
+
+    public void filmValidate(Film film, List<Mpa> mpaList, List<Genre> genresList) {
+        if (mpaList.stream().noneMatch(mpa -> film.getMpa().getId() == mpa.getId())) {
+            throw new ValidateException("The film's mpa is not valid");
         }
-        List<Genre> filmGenres = film.getGenres();
+        Set<Genre> filmGenres = film.getGenres();
         if (filmGenres != null && !filmGenres.isEmpty()) {
-            filmGenres.forEach(genre -> {
-                if (!GenreEnum.checkGenreID(genre.getId())) {
-                    throw new ValidateException("Unknown movie GENRE_ID");
+            film.getGenres().forEach(genre -> {
+                if (genresList.stream().noneMatch(g -> genre.getId() == g.getId())) {
+                    throw new ValidateException("The film's genreId is not valid");
                 }
             });
         }

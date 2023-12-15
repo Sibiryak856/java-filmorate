@@ -9,16 +9,16 @@ import lombok.ToString;
 @Setter
 @ToString
 @EqualsAndHashCode
-public class MpaRate {
+public class Mpa {
 
     private Integer id;
     private String name;
 
-    public MpaRate(Integer id) {
+    public Mpa(Integer id) {
         this.id = id;
     }
 
-    public MpaRate(Integer id, String name) {
+    public Mpa(Integer id, String name) {
         this.id = id;
         this.name = name;
     }

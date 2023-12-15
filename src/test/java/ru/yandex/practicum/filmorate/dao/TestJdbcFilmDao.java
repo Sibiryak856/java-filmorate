@@ -6,43 +6,42 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import ru.yandex.practicum.filmorate.dao.impl.FilmDbDaoImpl;
-import ru.yandex.practicum.filmorate.dao.impl.UserDbDaoImpl;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import ru.yandex.practicum.filmorate.dao.impl.JdbcFilmDao;
+import ru.yandex.practicum.filmorate.dao.impl.JdbcUserDao;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRate;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @JdbcTest
-public class TestFilmDbStorage {
+public class TestJdbcFilmDao {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbc;
 
-    private FilmDbDaoImpl filmDao;
-    private UserDbDaoImpl userDao;
+    private JdbcFilmDao filmDao;
+    private JdbcUserDao userDao;
     private Film film;
     private User user;
 
     @BeforeEach
     public void setUp() {
-        filmDao = new FilmDbDaoImpl(jdbcTemplate);
-        userDao = new UserDbDaoImpl(jdbcTemplate);
+        filmDao = new JdbcFilmDao(jdbc);
+        userDao = new JdbcUserDao(jdbc);
         film = Film.builder()
                 .id(1)
                 .name("name")
                 .description("description")
                 .releaseDate(LocalDate.of(1995, 12, 27))
                 .duration(100)
-                .mpa(new MpaRate(1, "G"))
-                .genres(new ArrayList<>())
+                .mpa(new Mpa(1, "G"))
+                .genres(new LinkedHashSet<>())
                 .build();
         user =  User.builder()
                 .id(1L)
@@ -82,9 +81,9 @@ public class TestFilmDbStorage {
     public void testUpdateFilm() {
         filmDao.create(film);
         Film filmToUpdate = film;
-        filmToUpdate.setGenres(Arrays.asList(new Genre(1, "Комедия")));
+        filmToUpdate.setMpa(new Mpa(4, "R"));
         filmDao.update(filmToUpdate);
-        film.setGenres(Arrays.asList(new Genre(1, "Комедия")));
+        film.setMpa(new Mpa(4, "R"));
 
         Optional<Film> res = filmDao.getFilm(filmToUpdate.getId());
 

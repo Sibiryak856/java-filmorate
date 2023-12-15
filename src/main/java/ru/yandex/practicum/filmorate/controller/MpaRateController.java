@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.model.MpaRate;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.impl.MpaRateServiceImpl;
 
 import java.util.List;
@@ -24,18 +24,18 @@ public class MpaRateController {
     }
 
     @GetMapping
-    public List<MpaRate> getAll() {
+    public List<Mpa> getAll() {
         log.info("Request received: GET /mpa");
-        List<MpaRate> mpaRates = mpaRateService.getAll();
-        log.info("Request GET /mpa processed: mpaRates: {}", mpaRates);
-        return mpaRates;
+        List<Mpa> mpas = mpaRateService.getAll();
+        log.info("Request GET /mpa processed: mpaRates: {}", mpas);
+        return mpas;
     }
 
     @GetMapping("/{id}")
-    public MpaRate getGenre(@PathVariable Integer id) {
+    public Mpa getGenre(@PathVariable Integer id) {
         log.info("Request received: GET /mpa id={}", id);
-        MpaRate mpaRate = mpaRateService.getMpa(id);
-        log.info("Request GET /mpa id={} processed: mpa: {}", id, mpaRate);
-        return mpaRate;
+        Mpa mpa = mpaRateService.getMpa(id);
+        log.info("Request GET /mpa id={} processed: mpa: {}", id, mpa);
+        return mpa;
     }
 }

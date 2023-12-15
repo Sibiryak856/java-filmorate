@@ -6,8 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import ru.yandex.practicum.filmorate.dao.impl.UserDbDaoImpl;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import ru.yandex.practicum.filmorate.dao.impl.JdbcUserDao;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -17,17 +17,17 @@ import java.util.Optional;
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @JdbcTest
-public class TestUserDbStorage {
+public class TestJdbcUserDao {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private UserDbDaoImpl userDao;
+    private JdbcUserDao userDao;
     private User user;
     private User friend;
 
     @BeforeEach
     public void setUp() {
-        userDao = new UserDbDaoImpl(jdbcTemplate);
+        userDao = new JdbcUserDao(jdbcTemplate);
         user =  User.builder()
                 .id(1L)
                 .email("u@y.ru")

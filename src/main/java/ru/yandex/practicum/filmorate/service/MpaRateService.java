@@ -1,13 +1,13 @@
 package ru.yandex.practicum.filmorate.service;
 
-import ru.yandex.practicum.filmorate.model.MpaRate;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
 
 public interface MpaRateService {
 
-    List<MpaRate> getAll();
+    List<Mpa> getAll();
 
-    MpaRate getMpa(Integer id);
+    Mpa getMpa(Integer id);
 
 }

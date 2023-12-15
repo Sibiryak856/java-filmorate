@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.GenreDao;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
@@ -15,9 +14,9 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class GenreDaoImpl implements GenreDao {
+public class JdbcGenreDao implements GenreDao {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public List<Genre> getAll() {
@@ -28,16 +27,19 @@ public class GenreDaoImpl implements GenreDao {
     @Override
     public Optional<Genre> getGenre(Integer id) {
         Genre genre;
-        try {
-            genre = jdbcTemplate.queryForObject(
-                    "SELECT * \n" +
-                            "FROM GENRES\n" +
-                            "WHERE GENRE_ID = ?",
-                    this::mapRowToGenre,
-                    id);
-        } catch (EmptyResultDataAccessException e) {
-            throw new NotFoundException(String.format("Genre id=%d not found", id));
-        }
+        genre = jdbcTemplate.query(
+                "SELECT * FROM GENRES\n" +
+                        "WHERE GENRE_ID = :id",
+                new MapSqlParameterSource().addValue("id", id),
+                rs -> {
+                    Genre res = null;
+                    if (rs.next()) {
+                        res = new Genre(
+                                rs.getInt("GENRE_ID"),
+                                rs.getString("GENRE_NAME"));
+                    }
+                    return res;
+                });
         return Optional.ofNullable(genre);
     }
 

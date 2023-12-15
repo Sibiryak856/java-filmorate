@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMethod;
 import ru.yandex.practicum.filmorate.dao.UserDao;
@@ -22,7 +21,7 @@ public class UserServiceImpl implements UserService {
     private final ValidateService validateService;
 
     @Autowired
-    public UserServiceImpl(@Qualifier("userDbStorage") UserDao userDao,
+    public UserServiceImpl(UserDao userDao,
                            ValidateService validateService) {
         this.userDao = userDao;
         this.validateService = validateService;
