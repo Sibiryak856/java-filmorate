@@ -53,26 +53,10 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film createFilm(Film film) {
-        checkFilm(film);
-        film.setMpa(mpaDao.getMpa(film.getMpa().getId()).get());
-        return filmDao.create(film);
-    }
-
-    @Override
-    public Film update(Film film) {
-        checkFilm(film);
-        film.setMpa(mpaDao.getMpa(film.getMpa().getId()).get());
-        filmDao.update(film);
-        return filmDao.getFilm(film.getId()).get();
-    }
-
-    private void checkFilm(Film film) {
-        Film checkingFilm = filmDao.getFilm(film.getId())
-                .orElseThrow(() -> new NotFoundException(("Updating film not found")));
-
         Mpa mpa = mpaDao.getMpa(film.getMpa().getId())
                 .orElseThrow(() ->
                         new NotFoundException(String.format("Film's mpa %d not found", film.getMpa().getId())));
+        film.setMpa(mpa);
 
         Set<Genre> filmGenres = film.getGenres();
         Set<Genre> filmGenresFromDataBase = new HashSet<>();
@@ -84,6 +68,33 @@ public class FilmServiceImpl implements FilmService {
                 throw new NotFoundException("Not all genres are found in the database");
             }
         }
+
+        return filmDao.create(film);
+    }
+
+    @Override
+    public Film update(Film film) {
+        Film checkingFilm = filmDao.getFilm(film.getId())
+                .orElseThrow(() -> new NotFoundException(("Updating film not found")));
+
+        Mpa mpa = mpaDao.getMpa(film.getMpa().getId())
+                .orElseThrow(() ->
+                        new NotFoundException(String.format("Film's mpa %d not found", film.getMpa().getId())));
+        film.setMpa(mpa);
+
+        Set<Genre> filmGenres = film.getGenres();
+        Set<Genre> filmGenresFromDataBase = new HashSet<>();
+        if (filmGenres != null && !filmGenres.isEmpty()) {
+            for (Genre genre : filmGenres) {
+                filmGenresFromDataBase.add(genreDao.getGenre(genre.getId()).get());
+            }
+            if (filmGenres.size() != filmGenresFromDataBase.size()) {
+                throw new NotFoundException("Not all genres are found in the database");
+            }
+        }
+
+        filmDao.update(film);
+        return filmDao.getFilm(film.getId()).get();
     }
 
     @Override

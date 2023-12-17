@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
@@ -13,9 +14,10 @@ import java.util.Set;
 public class UserTest {
     private static Validator validator;
 
-    static {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        validator = validatorFactory.usingContext().getValidator();
+    @BeforeAll
+    public static void setUpValidator() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
     }
 
     @Test
