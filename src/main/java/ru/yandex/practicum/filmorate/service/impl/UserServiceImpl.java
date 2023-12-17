@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.dao.UserDao;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.service.ValidateService;
 
 import java.util.List;
 
@@ -18,13 +17,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 public class UserServiceImpl implements UserService {
 
     public UserDao userDao;
-    private final ValidateService validateService;
 
     @Autowired
-    public UserServiceImpl(UserDao userDao,
-                           ValidateService validateService) {
+    public UserServiceImpl(UserDao userDao) {
         this.userDao = userDao;
-        this.validateService = validateService;
     }
 
     @Override
@@ -40,7 +36,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(User user) {
-        validateService.userValidate(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
@@ -51,7 +46,9 @@ public class UserServiceImpl implements UserService {
     public User update(User user) {
         User updatingUser = userDao.getUser(user.getId())
                 .orElseThrow(() -> new NotFoundException("Updating user not found"));
-        validateService.userValidate(user);
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         userDao.update(user);
         return userDao.getUser(user.getId()).get();
     }

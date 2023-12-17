@@ -13,9 +13,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.ValidateService;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -27,16 +28,13 @@ public class FilmServiceImpl implements FilmService {
     private UserDao userDao;
     private MpaDao mpaDao;
     private GenreDao genreDao;
-    private final ValidateService validateService;
 
     @Autowired
     public FilmServiceImpl(FilmDao filmDao,
-                           ValidateService validateService,
                            UserDao userDao,
                            MpaDao mpaDao,
                            GenreDao genreDao) {
         this.filmDao = filmDao;
-        this.validateService = validateService;
         this.userDao = userDao;
         this.mpaDao = mpaDao;
         this.genreDao = genreDao;
@@ -56,30 +54,51 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public Film createFilm(Film film) {
         List<Mpa> mpaList = mpaDao.getAll();
-        List<Genre> genreList = genreDao.getAll();
-
-        checkMpaAndGenreInDb(mpaList, genreList);
-        validateService.filmValidate(film, mpaList, genreList);
-
+        if (mpaList.stream().noneMatch(mpa -> film.getMpa().getId() == mpa.getId())) {
+            throw new NotFoundException(String.format("Film's mpa %d not found", film.getMpa().getId()));
+        }
         mpaList.stream().filter(mpa -> mpa.getId() == film.getMpa().getId()).forEach(film::setMpa);
+
+        Set<Genre> filmGenres = film.getGenres();
+        Set<Genre> filmGenresFromDataBase = new HashSet<>();
+        if (filmGenres != null && !filmGenres.isEmpty()) {
+            for (Genre genre : filmGenres) {
+                filmGenresFromDataBase.add(genreDao.getGenre(genre.getId()).get());
+            }
+            if (filmGenres.size() != filmGenresFromDataBase.size()) {
+                throw new NotFoundException("Not all genres are found in the database");
+            }
+        }
 
         return filmDao.create(film);
     }
 
     @Override
     public Film update(Film film) {
-        Film updatingFilm = filmDao.getFilm(film.getId())
-                .orElseThrow(() -> new NotFoundException(("Updating film not found")));
-        List<Mpa> mpaList = mpaDao.getAll();
-        List<Genre> genreList = genreDao.getAll();
-
-        checkMpaAndGenreInDb(mpaList, genreList);
-        validateService.filmValidate(film, mpaList, genreList);
-
-        mpaList.stream().filter(mpa -> mpa.getId() == film.getMpa().getId()).forEach(film::setMpa);
-
+        checkFilm(film);
+        film.setMpa(mpaDao.getMpa(film.getMpa().getId()).get());
         filmDao.update(film);
         return filmDao.getFilm(film.getId()).get();
+    }
+
+    private void checkFilm(Film film) {
+        Film checkingFilm = filmDao.getFilm(film.getId())
+                .orElseThrow(() -> new NotFoundException(("Updating film not found")));
+
+        Mpa mpa = mpaDao.getMpa(film.getMpa().getId())
+                .orElseThrow(() ->
+                        new NotFoundException(String.format("Film's mpa %d not found", film.getMpa().getId())));
+
+        Set<Genre> filmGenres = film.getGenres();
+        Set<Genre> filmGenresFromDataBase = new HashSet<>();
+        if (filmGenres != null && !filmGenres.isEmpty()) {
+            for (Genre genre : filmGenres) {
+                filmGenresFromDataBase.add(genreDao.getGenre(genre.getId()).get());
+            }
+            if (filmGenres.size() != filmGenresFromDataBase.size()) {
+                throw new NotFoundException("Not all genres are found in the database");
+            }
+        }
     }
 
     @Override
@@ -99,14 +118,5 @@ public class FilmServiceImpl implements FilmService {
     @Override
     public List<Film> getTopFilms(Integer count) {
         return filmDao.getTopFilms(count);
-    }
-
-    private void checkMpaAndGenreInDb(List<Mpa> mpaList, List<Genre> genreList) {
-        if (mpaList.isEmpty()) {
-            throw new NotFoundException("MPA table is empty");
-        }
-        if (genreList.isEmpty()) {
-            throw new NotFoundException("GENRES table is empty");
-        }
     }
 }

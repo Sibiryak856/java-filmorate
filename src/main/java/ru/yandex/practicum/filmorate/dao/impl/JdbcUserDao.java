@@ -33,25 +33,24 @@ public class JdbcUserDao implements UserDao {
     @Override
     public Optional<User> getUser(Long id) {
         SqlParameterSource params = new MapSqlParameterSource().addValue("id", id);
-        User user = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT * \n" +
                         "FROM USERS\n" +
                         "WHERE USER_ID = :id",
                 params,
                 rs -> {
-                    User extractedUser = null;
-                    if (rs.next()) {
-                        extractedUser = User.builder()
-                                .id(rs.getLong("USER_ID"))
-                                .email(rs.getString("EMAIL"))
-                                .login(rs.getString("LOGIN"))
-                                .name(rs.getString("USER_NAME"))
-                                .birthday(rs.getDate("BIRTHDAY").toLocalDate())
-                                .build();
+                    if (!rs.next()) {
+                        return Optional.empty();
                     }
-                    return extractedUser;
+                    return Optional.of(
+                            User.builder()
+                            .id(rs.getLong("USER_ID"))
+                            .email(rs.getString("EMAIL"))
+                            .login(rs.getString("LOGIN"))
+                            .name(rs.getString("USER_NAME"))
+                            .birthday(rs.getDate("BIRTHDAY").toLocalDate())
+                            .build());
                 });
-        return Optional.ofNullable(user);
     }
 
     @Override

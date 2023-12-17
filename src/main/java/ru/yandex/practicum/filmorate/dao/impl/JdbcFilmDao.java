@@ -48,7 +48,7 @@ public class JdbcFilmDao implements FilmDao {
     @Override
     public Optional<Film> getFilm(Integer id) {
         SqlParameterSource params = new MapSqlParameterSource().addValue("id", id);
-        Film film = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "WITH\n" +
                         "GENRE_CONCAT AS (\n" +
                         "SELECT GENRE_ID, CONCAT_WS(',', GENRE_ID, GENRE_NAME) AS CONC_GENRE\n" +
@@ -68,22 +68,20 @@ public class JdbcFilmDao implements FilmDao {
                         "WHERE f.FILM_ID = :id",
                 params,
                 rs -> {
-                    Film extractedFilm = null;
-                    if (rs.next()) {
-                        extractedFilm = Film.builder()
-                                .id(rs.getInt("FILM_ID"))
-                                .name(rs.getString("FILM_NAME"))
-                                .description(rs.getString("DESCRIPTION"))
-                                .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
-                                .duration(rs.getInt("DURATION"))
-                                .mpa(new Mpa(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
-                                .genres(getFilmGenres(rs.getString("FILM_GENRES")))
-                                .build();
+                    if (!rs.next()) {
+                        return Optional.empty();
                     }
-                    return extractedFilm;
+                    return Optional.of(
+                            Film.builder()
+                                    .id(rs.getInt("FILM_ID"))
+                                    .name(rs.getString("FILM_NAME"))
+                                    .description(rs.getString("DESCRIPTION"))
+                                    .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
+                                    .duration(rs.getInt("DURATION"))
+                                    .mpa(new Mpa(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")))
+                                    .genres(getFilmGenres(rs.getString("FILM_GENRES")))
+                                    .build());
                 });
-        return Optional.ofNullable(film);
-
     }
 
     @Override

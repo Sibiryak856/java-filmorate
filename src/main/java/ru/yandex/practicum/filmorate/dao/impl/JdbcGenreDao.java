@@ -26,21 +26,18 @@ public class JdbcGenreDao implements GenreDao {
 
     @Override
     public Optional<Genre> getGenre(Integer id) {
-        Genre genre;
-        genre = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT * FROM GENRES\n" +
                         "WHERE GENRE_ID = :id",
                 new MapSqlParameterSource().addValue("id", id),
                 rs -> {
-                    Genre res = null;
-                    if (rs.next()) {
-                        res = new Genre(
-                                rs.getInt("GENRE_ID"),
-                                rs.getString("GENRE_NAME"));
+                    if (!rs.next()) {
+                        return Optional.empty();
                     }
-                    return res;
+                    return Optional.of(new Genre(
+                            rs.getInt("GENRE_ID"),
+                            rs.getString("GENRE_NAME")));
                 });
-        return Optional.ofNullable(genre);
     }
 
     private Genre mapRowToGenre(ResultSet resultSet, int i) throws SQLException {

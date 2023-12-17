@@ -18,14 +18,6 @@ import java.util.Map;
 public class ErrorHandler {
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidateException(final ValidateException e) {
-        String message = e.getMessage();
-        log.info(message);
-        return new ErrorResponse(message);
-    }
-
-    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(final NotFoundException e) {
         String message = e.getMessage();

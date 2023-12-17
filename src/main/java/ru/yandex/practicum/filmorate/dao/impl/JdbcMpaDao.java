@@ -26,19 +26,18 @@ public class JdbcMpaDao implements MpaDao {
 
     @Override
     public Optional<Mpa> getMpa(Integer id) {
-        Mpa mpa = jdbcTemplate.query(
+        return jdbcTemplate.query(
                 "SELECT * \n" +
                         "FROM MPA\n" +
                         "WHERE MPA_ID = :id",
                 new MapSqlParameterSource().addValue("id", id),
                 rs -> {
-                    Mpa res = null;
                     if (rs.next()) {
-                        res = new Mpa(rs.getInt("MPA_ID"), rs.getString("MPA_NAME"));
+                        return Optional.of(
+                                new Mpa(rs.getInt("MPA_ID"), rs.getString("MPA_NAME")));
                     }
-                    return res;
+                    return Optional.empty();
                 });
-        return Optional.ofNullable(mpa);
     }
 
     private Mpa mapRowToMpaRating(ResultSet resultSet, int i) throws SQLException {
