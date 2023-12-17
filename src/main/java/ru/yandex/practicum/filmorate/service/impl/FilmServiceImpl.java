@@ -53,23 +53,8 @@ public class FilmServiceImpl implements FilmService {
 
     @Override
     public Film createFilm(Film film) {
-        List<Mpa> mpaList = mpaDao.getAll();
-        if (mpaList.stream().noneMatch(mpa -> film.getMpa().getId() == mpa.getId())) {
-            throw new NotFoundException(String.format("Film's mpa %d not found", film.getMpa().getId()));
-        }
-        mpaList.stream().filter(mpa -> mpa.getId() == film.getMpa().getId()).forEach(film::setMpa);
-
-        Set<Genre> filmGenres = film.getGenres();
-        Set<Genre> filmGenresFromDataBase = new HashSet<>();
-        if (filmGenres != null && !filmGenres.isEmpty()) {
-            for (Genre genre : filmGenres) {
-                filmGenresFromDataBase.add(genreDao.getGenre(genre.getId()).get());
-            }
-            if (filmGenres.size() != filmGenresFromDataBase.size()) {
-                throw new NotFoundException("Not all genres are found in the database");
-            }
-        }
-
+        checkFilm(film);
+        film.setMpa(mpaDao.getMpa(film.getMpa().getId()).get());
         return filmDao.create(film);
     }
 
