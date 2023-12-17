@@ -15,7 +15,7 @@ public interface FilmService {
 
     Film update(Film film);
 
-    void updateLike(Integer userId, Integer filmId, RequestMethod method);
+    void updateLike(Long userId, Integer filmId, RequestMethod method);
 
     List<Film> getTopFilms(Integer count);
 
