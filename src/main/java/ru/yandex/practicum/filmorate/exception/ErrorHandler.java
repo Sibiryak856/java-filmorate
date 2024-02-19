@@ -7,23 +7,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
 import javax.validation.ConstraintViolationException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidateException(final ValidateException e) {
-        String message = e.getMessage();
-        log.info(message);
-        return new ErrorResponse(message);
-    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -63,8 +55,16 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleSQLException(final SQLException e) {
+        String errorMsg = "Unexpected database error";
+        log.error(errorMsg, e);
+        return new ErrorResponse(errorMsg);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
-        String errorMsg = "Произошла непредвиденная ошибка";
+        String errorMsg = "Unexpected error occurred";
         log.error(errorMsg, e);
         return new ErrorResponse(errorMsg);
     }
